@@ -11,6 +11,10 @@ namespace Gaea.Net.Core
     {
         Hashtable onlineMap = new Hashtable();
 
+        /// <summary>
+        ///  添加一个连接到在线列表中
+        /// </summary>
+        /// <param name="context"></param>
         public void AddContext(SocketContext context)
         {
             context.OwnerServer = this;
@@ -20,11 +24,29 @@ namespace Gaea.Net.Core
             }
         }
 
+        /// <summary>
+        ///  移除一个在线连接
+        /// </summary>
+        /// <param name="context"></param>
         public void RemoveContext(SocketContext context)
         {
             lock (onlineMap)
             {
                 onlineMap.Remove(context.RawSocket.Handle);
+            }
+        }
+
+        /// <summary>
+        ///  请求断开所有连接, 不一定会立刻断开
+        /// </summary>
+        public void RequestDisconnectAll()
+        {
+            lock(onlineMap)
+            {
+                foreach(SocketContext context in onlineMap)
+                {
+                    context.RequestDisconnect();
+                }
             }
         }
     }

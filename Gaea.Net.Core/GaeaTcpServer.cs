@@ -10,7 +10,9 @@ namespace Gaea.Net.Core
 {
     public class GaeaTcpServer:SocketServer
     {
+        List<TcpListener> listeners = new List<TcpListener>();
         TcpListener defaultListener = null;
+        private bool active;
 
         public GaeaTcpServer():base()
         {
@@ -19,13 +21,17 @@ namespace Gaea.Net.Core
             defaultListener.RegisterContextClass(typeof(SocketContext));
         }
 
-
-
         public void Open()
         {
             defaultListener.Start();
-            defaultListener.CheckPostRequest();
-            
+            defaultListener.CheckPostRequest();      
+            active = true;
+        }
+
+        public void Stop()
+        {
+            defaultListener.Stop();
+            active = false;
         }
 
         public int DefaultPort { 
@@ -41,6 +47,7 @@ namespace Gaea.Net.Core
 
         public TcpListener DefaultListener { get { return defaultListener; } }
 
+        public bool Active { get { return active; } set { } }
 
 
     }

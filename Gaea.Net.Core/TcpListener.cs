@@ -16,7 +16,17 @@ namespace Gaea.Net.Core
         public override void DoResponse()
         {
             base.DoResponse();
-            Owner.DoAfterAccept(this);
+            if (SocketEventArg.SocketError == SocketError.Success)
+            {
+                Owner.DoAfterAccept(this);
+            }
+            else
+            {
+                Debug.WriteLine(String.Format("响应Accept请求出现了异常, 错误代码:{0}",
+                    SocketEventArg.SocketError));
+                Owner.CheckPostRequest();
+            }
+           
         }
         public TcpListener Owner { set; get; }
     }
@@ -57,6 +67,7 @@ namespace Gaea.Net.Core
 
         public void CheckPostRequest()
         {
+            if (socket == null) return;
             AcceptRequest req = GetAcceptRequest();
             PostAcceptRequest(req);
         }
@@ -104,6 +115,15 @@ namespace Gaea.Net.Core
         public void Start()
         {
             Start(Port);
+        }
+
+        public void Stop()
+        {
+            if (socket != null)
+            {
+                socket.Close();
+                socket = null;
+            }
         }
 
         /// <summary>

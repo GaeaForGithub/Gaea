@@ -22,8 +22,8 @@ namespace Gaea.Net.Core
             }
             else
             {
-                Debug.WriteLine(String.Format("响应Accept请求出现了异常, 错误代码:{0}",
-                    SocketEventArg.SocketError));
+                Owner.TcpServer.LogMessage(String.Format(StrRes.STR_AcceptException,
+                    Owner.TcpServer.Name, SocketEventArg.SocketError), LogLevel.lgvDebug);
                 Owner.CheckPostRequest();
             }
            

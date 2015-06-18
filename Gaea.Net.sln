@@ -5,7 +5,7 @@ VisualStudioVersion = 12.0.31101.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Gaea.Net.Core", "Gaea.Net.Core\Gaea.Net.Core.csproj", "{0018D557-A324-4CB2-B253-CA3BDD3654D0}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Echo", "Echo\Echo.csproj", "{F621031D-7905-4A1B-9228-7DB40B6753F5}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Gaea.Samples.Echo", "Gaea.Samples.Echo\Gaea.Samples.Echo.csproj", "{F621031D-7905-4A1B-9228-7DB40B6753F5}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

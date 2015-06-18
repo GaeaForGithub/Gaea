@@ -30,8 +30,20 @@ namespace Gaea.Net.Core
 
         public void Stop()
         {
-            defaultListener.Stop();
-            active = false;
+            if (active)
+            {
+                active = false;
+                // 停止监听
+                defaultListener.Stop();
+
+                // 请求断开
+                RequestDisconnectAll();
+
+                // 等待连接关闭
+                WaitForContextRelease();
+
+                LogMessage(String.Format(StrRes.STR_ServerOff, Name), LogLevel.lgvDebug);
+            }
         }
 
         public int DefaultPort { 

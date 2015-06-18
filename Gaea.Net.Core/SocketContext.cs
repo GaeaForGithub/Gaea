@@ -22,16 +22,27 @@ namespace Gaea.Net.Core
             }
             else
             {
-                Debug.WriteLine(String.Format("{0} 响应投递的异步请求时出现了异常, 发送长度:{1}, 错误代码:{2}",
-                    Context.RawSocket.Handle, SocketEventArg.BytesTransferred, SocketEventArg.SocketError));
+                Context.LogMessage(String.Format(StrRes.STR_SendContextException,
+                    Context.SocketHandle, SocketEventArg.BytesTransferred, SocketEventArg.SocketError), LogLevel.lgvDebug);
 
                 Context.RequestDisconnect();
             }
 
             
         }
+
+        /// <summary>
+        ///  请求被取消
+        ///  一般情况下是，连接关闭时，发送队列还没有来得及处理
+        /// </summary>
+        public virtual void DoCancel()
+        {
+
+        }
         
     }
+
+
 
     public class SocketReceiveRequest:SocketRequest
     {
@@ -44,12 +55,11 @@ namespace Gaea.Net.Core
             {
                 // 触发接收事件
                 Context.DoRecveiveBuffer(this.SocketEventArg);
-
             }
             else
             {
-                Debug.WriteLine(String.Format("{0}, 响应接受时出现异常, 接收长度:{1}, 错误代码:{2}",
-                    Context.RawSocket.Handle, SocketEventArg.BytesTransferred, SocketEventArg.SocketError));
+                Context.LogMessage(String.Format(StrRes.STR_ReceiveException,
+                    Context.RawSocket.Handle, SocketEventArg.BytesTransferred, SocketEventArg.SocketError), LogLevel.lgvDebug);
 
                 Context.RequestDisconnect();
             }
@@ -71,7 +81,29 @@ namespace Gaea.Net.Core
         private int recvBufferLen = 1024 * 50;
         private SocketReceiveRequest recvRequest = null;
         public List<SocketSendRequest> sendCache = new List<SocketSendRequest>();
-        
+        public IntPtr SocketHandle { get; set; }
+
+        /// <summary>
+        ///  清理发送缓存，关闭时进行清理
+        /// </summary>
+        public void ClearSendCache()
+        {
+            lock (sendCache)
+            {
+                foreach (SocketSendRequest req in sendCache)
+                {
+                    req.DoCancel();
+                }
+                sendCache.Clear();
+            }
+        }
+
+
+        public void LogMessage(string msg, LogLevel level)
+        {
+            OwnerServer.LogMessage(msg, level);
+        }
+
         private void CheckInitalizeObjects()
         {
             if (recvRequest == null)
@@ -93,6 +125,7 @@ namespace Gaea.Net.Core
 
         public void DoAfterAccept()
         {
+            SocketHandle = RawSocket.Handle;
             requestedDisconnect = false;
             AddRef();           
         }
@@ -144,6 +177,7 @@ namespace Gaea.Net.Core
             {
                 if (!requestedDisconnect)
                 {
+                    RawSocket.Shutdown(SocketShutdown.Both);                    
                     requestedDisconnect = true;
                     release = true;
                 }
@@ -161,22 +195,37 @@ namespace Gaea.Net.Core
         /// </summary>
         public void SendNextRequest()
         {
-            SocketSendRequest req = null;
-            lock (sendCache)
+            if (this.AddRef())
             {
-                if (sendCache.Count == 0)
+                try
                 {
-                    sending = false;
-                    return;
-                }
-                req = sendCache[0];
-                sendCache.RemoveAt(0);
-            }
+                    SocketSendRequest req = null;
+                    lock (sendCache)
+                    {
+                        if (sendCache.Count == 0)
+                        {
+                            sending = false;
+                            return;
+                        }
+                        req = sendCache[0];
+                        sendCache.RemoveAt(0);
+                    }
 
-            // 处理一个异步发送请求
-            if (!RawSocket.SendAsync(req.SocketEventArg))
+                    // 处理一个异步发送请求
+                    if (!RawSocket.SendAsync(req.SocketEventArg))
+                    {
+                        req.DoResponse();
+                    }
+                }
+                finally
+                {
+                    this.ReleaseRef();
+                }
+            }
+            else
             {
-                req.DoResponse();
+                LogMessage(String.Format(StrRes.STR_SendContextIsOff,
+                    SocketHandle, sendCache.Count), LogLevel.lgvDebug);
             }
         }
 
@@ -186,17 +235,25 @@ namespace Gaea.Net.Core
 
         public void DoRecveiveBuffer(SocketAsyncEventArgs e)
         {
-            this.AddRef();
-            try
+            if (this.AddRef())
             {
-                OnRecvBuffer(e);
+                try
+                {
+                    OnRecvBuffer(e);
 
-                // 继续投递一个接收请求
-                PostReceiveRequest();
-            }
-            finally
+                    OwnerServer.DoContextReceive(this, e);
+
+                    // 继续投递一个接收请求
+                    PostReceiveRequest();
+                }
+                finally
+                {
+                    this.ReleaseRef();
+                }
+            }else
             {
-                this.ReleaseRef();
+                LogMessage(String.Format(StrRes.STR_ReceiveContextIsOff,
+                    SocketHandle), LogLevel.lgvDebug);
             }
         }
 

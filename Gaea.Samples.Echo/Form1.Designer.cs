@@ -1,4 +1,4 @@
-﻿namespace Echo
+﻿namespace Gaea.Samples.Echo
 {
     partial class Form1
     {
@@ -29,8 +29,8 @@
         private void InitializeComponent()
         {
             this.panel1 = new System.Windows.Forms.Panel();
-            this.btnStart = new System.Windows.Forms.Button();
             this.txtPort = new System.Windows.Forms.TextBox();
+            this.btnStart = new System.Windows.Forms.Button();
             this.panel1.SuspendLayout();
             this.SuspendLayout();
             // 
@@ -44,6 +44,14 @@
             this.panel1.Size = new System.Drawing.Size(744, 49);
             this.panel1.TabIndex = 0;
             // 
+            // txtPort
+            // 
+            this.txtPort.Location = new System.Drawing.Point(12, 12);
+            this.txtPort.Name = "txtPort";
+            this.txtPort.Size = new System.Drawing.Size(142, 21);
+            this.txtPort.TabIndex = 1;
+            this.txtPort.Text = "9983";
+            // 
             // btnStart
             // 
             this.btnStart.Location = new System.Drawing.Point(160, 12);
@@ -54,14 +62,6 @@
             this.btnStart.UseVisualStyleBackColor = true;
             this.btnStart.Click += new System.EventHandler(this.btnStart_Click);
             // 
-            // txtPort
-            // 
-            this.txtPort.Location = new System.Drawing.Point(12, 12);
-            this.txtPort.Name = "txtPort";
-            this.txtPort.Size = new System.Drawing.Size(142, 21);
-            this.txtPort.TabIndex = 1;
-            this.txtPort.Text = "9983";
-            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 12F);
@@ -70,6 +70,7 @@
             this.Controls.Add(this.panel1);
             this.Name = "Form1";
             this.Text = "Form1";
+            this.FormClosed += new System.Windows.Forms.FormClosedEventHandler(this.Form1_FormClosed);
             this.Load += new System.EventHandler(this.Form1_Load);
             this.panel1.ResumeLayout(false);
             this.panel1.PerformLayout();

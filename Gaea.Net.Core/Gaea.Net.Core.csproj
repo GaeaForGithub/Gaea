@@ -42,6 +42,7 @@
   <ItemGroup>
     <Compile Include="SocketContext.cs" />
     <Compile Include="SocketRequest.cs" />
+    <Compile Include="StrRes.cs" />
     <Compile Include="TcpListener.cs" />
     <Compile Include="SocketServer.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

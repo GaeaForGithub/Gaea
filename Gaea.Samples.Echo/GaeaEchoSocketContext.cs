@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace Gaea.Samples.Echo
 {
-    public class GaeaSocketContext:SocketContext
+    public class GaeaEchoSocketContext:GaeaSocketContext
     {
         public override void OnRecvBuffer(System.Net.Sockets.SocketAsyncEventArgs e)
         {

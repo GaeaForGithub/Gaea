@@ -5,7 +5,7 @@ using System.Text;
 
 namespace Gaea.Net.Core
 {
-    public class StrRes
+    public class GaeaStrRes
     {
         public const string STR_AcceptException = "[{0}]:响应Accept请求出现了异常, 错误代码:{1}";
         public const string STR_ReceiveException = "[{0}]:响应接受时出现异常, 接收长度:{1}, 错误代码:{2}";

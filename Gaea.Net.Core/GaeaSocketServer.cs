@@ -18,13 +18,13 @@ namespace Gaea.Net.Core
     /// <param name="context">发生接收的连接</param>
     /// <param name="buffer">数据流</param>
     /// <param name="len">接收到的数据长度</param>
-    public delegate void OnContextRecvBufferEvent(SocketContext context, byte[] buffer, int len);
+    public delegate void OnContextRecvBufferEvent(GaeaSocketContext context, byte[] buffer, int len);
 
-    public delegate void OnContextEvent(SocketContext context);
+    public delegate void OnContextEvent(GaeaSocketContext context);
 
     public delegate void OnAcceptEvent(Socket acceptSocket, ref bool allowAccept);
 
-    public class SocketServer
+    public class GaeaSocketServer
     {
         Hashtable onlineMap = new Hashtable();
         ManualResetEvent realseEvent = new ManualResetEvent(true);
@@ -33,7 +33,7 @@ namespace Gaea.Net.Core
         ///  添加一个连接到在线列表中
         /// </summary>
         /// <param name="context"></param>
-        public void AddContext(SocketContext context)
+        public void AddContext(GaeaSocketContext context)
         {
             context.OwnerServer = this;
             lock (onlineMap)
@@ -63,13 +63,40 @@ namespace Gaea.Net.Core
         /// </summary>
         public event OnAcceptEvent OnAccept;
 
+        public void DoContextConnected(GaeaSocketContext context)
+        {
+            if (OnContextConnected != null)
+            {
+                OnContextConnected(context);
+            }
+        }
+
+
+
+        public void DoContextDisconnected(GaeaSocketContext context)
+        {
+            if (OnContextDisconnected != null)
+            {
+                OnContextDisconnected(context);
+            }
+        }
+
+
+        public void DoAccept(Socket acceptSocket, ref bool allowAccept)
+        {
+            if (OnAccept != null)
+            {
+                OnAccept(acceptSocket, ref allowAccept);
+            }
+        }
+
 
         /// <summary>
         ///  连接接收到数据时调用
         /// </summary>
         /// <param name="context"></param>
         /// <param name="e"></param>
-        public void DoContextReceive(SocketContext context, SocketAsyncEventArgs e)
+        public void DoContextReceive(GaeaSocketContext context, SocketAsyncEventArgs e)
         {
             if (OnContextRecvBuffer!=null)
             {
@@ -81,7 +108,7 @@ namespace Gaea.Net.Core
 
         public void WaitForContextRelease()
         {
-            LogMessage(String.Format(StrRes.STR_WaitContextRelease, Name), LogLevel.lgvDebug);
+            LogMessage(String.Format(GaeaStrRes.STR_WaitContextRelease, Name), LogLevel.lgvDebug);
             realseEvent.WaitOne();
         }
 
@@ -89,7 +116,7 @@ namespace Gaea.Net.Core
         ///  移除一个在线连接
         /// </summary>
         /// <param name="context"></param>
-        public void RemoveContext(SocketContext context)
+        public void RemoveContext(GaeaSocketContext context)
         {
             lock (onlineMap)
             {
@@ -106,16 +133,16 @@ namespace Gaea.Net.Core
         /// </summary>
         public void RequestDisconnectAll()
         {
-            List<SocketContext> lst = new List<SocketContext>();
+            List<GaeaSocketContext> lst = new List<GaeaSocketContext>();
             lock(onlineMap)
             {                
                 foreach(DictionaryEntry obj in onlineMap)
                 {
-                    lst.Add((SocketContext)obj.Value);                    
+                    lst.Add((GaeaSocketContext)obj.Value);                    
                 }                
             }
 
-            foreach (SocketContext context in lst)
+            foreach (GaeaSocketContext context in lst)
             {
                 context.RequestDisconnect();
             }

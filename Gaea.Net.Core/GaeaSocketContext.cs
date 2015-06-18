@@ -9,9 +9,9 @@ using System.Threading.Tasks;
 
 namespace Gaea.Net.Core
 {
-    public class SocketSendRequest:SocketRequest
+    public class SocketSendRequest:GaeaSocketRequest
     {
-        public SocketContext Context { set; get; }
+        public GaeaSocketContext Context { set; get; }
         public override void DoResponse()
         {
             base.DoResponse();
@@ -22,7 +22,7 @@ namespace Gaea.Net.Core
             }
             else
             {
-                Context.LogMessage(String.Format(StrRes.STR_SendContextException,
+                Context.LogMessage(String.Format(GaeaStrRes.STR_SendContextException,
                     Context.SocketHandle, SocketEventArg.BytesTransferred, SocketEventArg.SocketError), LogLevel.lgvDebug);
 
                 Context.RequestDisconnect();
@@ -44,9 +44,9 @@ namespace Gaea.Net.Core
 
 
 
-    public class SocketReceiveRequest:SocketRequest
+    public class SocketReceiveRequest:GaeaSocketRequest
     {
-        public SocketContext Context { set; get; }
+        public GaeaSocketContext Context { set; get; }
         public override void DoResponse()
         {
             base.DoResponse();
@@ -58,7 +58,7 @@ namespace Gaea.Net.Core
             }
             else
             {
-                Context.LogMessage(String.Format(StrRes.STR_ReceiveException,
+                Context.LogMessage(String.Format(GaeaStrRes.STR_ReceiveException,
                     Context.RawSocket.Handle, SocketEventArg.BytesTransferred, SocketEventArg.SocketError), LogLevel.lgvDebug);
 
                 Context.RequestDisconnect();
@@ -69,7 +69,7 @@ namespace Gaea.Net.Core
 
     
 
-    public class SocketContext
+    public class GaeaSocketContext
     {
         private int refcount = 0;
 
@@ -120,6 +120,7 @@ namespace Gaea.Net.Core
         {
             // 移除在线连接
             OwnerServer.RemoveContext(this);
+            OwnerServer.DoContextDisconnected(this);
             RawSocket.Close();
         }
 
@@ -127,7 +128,8 @@ namespace Gaea.Net.Core
         {
             SocketHandle = RawSocket.Handle;
             requestedDisconnect = false;
-            AddRef();           
+            AddRef();
+            OwnerServer.DoContextConnected(this);
         }
 
         /// <summary>
@@ -162,7 +164,7 @@ namespace Gaea.Net.Core
             }
         }
 
-        public SocketContext()
+        public GaeaSocketContext()
         {
                    
         }
@@ -224,14 +226,29 @@ namespace Gaea.Net.Core
             }
             else
             {
-                LogMessage(String.Format(StrRes.STR_SendContextIsOff,
+                LogMessage(String.Format(GaeaStrRes.STR_SendContextIsOff,
                     SocketHandle, sendCache.Count), LogLevel.lgvDebug);
             }
         }
 
         public Socket RawSocket { set; get; }
 
-        public SocketServer OwnerServer { set; get; }
+        public string RemoteHost { 
+            get
+            {
+                return ((System.Net.IPEndPoint)RawSocket.RemoteEndPoint).Address.ToString();
+            }
+        }
+
+        public int RemotePort
+        {
+            get
+            {
+                return ((System.Net.IPEndPoint)RawSocket.RemoteEndPoint).Port;
+            }
+        }
+
+        public GaeaSocketServer OwnerServer { set; get; }
 
         public void DoRecveiveBuffer(SocketAsyncEventArgs e)
         {
@@ -252,7 +269,7 @@ namespace Gaea.Net.Core
                 }
             }else
             {
-                LogMessage(String.Format(StrRes.STR_ReceiveContextIsOff,
+                LogMessage(String.Format(GaeaStrRes.STR_ReceiveContextIsOff,
                     SocketHandle), LogLevel.lgvDebug);
             }
         }

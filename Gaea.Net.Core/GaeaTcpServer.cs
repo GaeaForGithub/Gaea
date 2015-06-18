@@ -8,17 +8,17 @@ using System.Threading.Tasks;
 
 namespace Gaea.Net.Core
 {
-    public class GaeaTcpServer:SocketServer
+    public class GaeaTcpServer:GaeaSocketServer
     {
-        List<TcpListener> listeners = new List<TcpListener>();
-        TcpListener defaultListener = null;
+        List<GaeaTcpListener> listeners = new List<GaeaTcpListener>();
+        GaeaTcpListener defaultListener = null;
         private bool active;
 
         public GaeaTcpServer():base()
         {
-            defaultListener = new TcpListener();
+            defaultListener = new GaeaTcpListener();
             defaultListener.TcpServer = this;
-            defaultListener.RegisterContextClass(typeof(SocketContext));
+            defaultListener.RegisterContextClass(typeof(GaeaSocketContext));
         }
 
         public void Open()
@@ -42,7 +42,7 @@ namespace Gaea.Net.Core
                 // 等待连接关闭
                 WaitForContextRelease();
 
-                LogMessage(String.Format(StrRes.STR_ServerOff, Name), LogLevel.lgvDebug);
+                LogMessage(String.Format(GaeaStrRes.STR_ServerOff, Name), LogLevel.lgvDebug);
             }
         }
 
@@ -57,7 +57,7 @@ namespace Gaea.Net.Core
             }
         }
 
-        public TcpListener DefaultListener { get { return defaultListener; } }
+        public GaeaTcpListener DefaultListener { get { return defaultListener; } }
 
         public bool Active { get { return active; } set { } }
 

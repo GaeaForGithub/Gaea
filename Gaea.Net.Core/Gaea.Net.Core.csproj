@@ -40,11 +40,11 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="SocketContext.cs" />
-    <Compile Include="SocketRequest.cs" />
-    <Compile Include="StrRes.cs" />
-    <Compile Include="TcpListener.cs" />
-    <Compile Include="SocketServer.cs" />
+    <Compile Include="GaeaSocketContext.cs" />
+    <Compile Include="GaeaSocketRequest.cs" />
+    <Compile Include="GaeaStrRes.cs" />
+    <Compile Include="GaeaTcpListener.cs" />
+    <Compile Include="GaeaSocketServer.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="GaeaTcpServer.cs" />
   </ItemGroup>

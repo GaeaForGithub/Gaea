@@ -11,37 +11,43 @@ namespace Gaea.Net.Core
 {
 
 
-    public class AcceptRequest : SocketRequest
+    public class AcceptRequest : GaeaSocketRequest
     {
         public override void DoResponse()
         {
             base.DoResponse();
-            if (SocketEventArg.SocketError == SocketError.Success)
+            bool allowAccept = true;
+            Owner.TcpServer.DoAccept(SocketEventArg.AcceptSocket, ref allowAccept);
+
+            if (allowAccept)
             {
-                Owner.DoAfterAccept(this);
-            }
-            else
-            {
-                Owner.TcpServer.LogMessage(String.Format(StrRes.STR_AcceptException,
-                    Owner.TcpServer.Name, SocketEventArg.SocketError), LogLevel.lgvDebug);
-                Owner.CheckPostRequest();
+                if (SocketEventArg.SocketError == SocketError.Success)
+                {
+                    Owner.DoAfterAccept(this);
+                }
+                else
+                {
+                    Owner.TcpServer.LogMessage(String.Format(GaeaStrRes.STR_AcceptException,
+                        Owner.TcpServer.Name, SocketEventArg.SocketError), LogLevel.lgvDebug);
+                    Owner.CheckPostRequest();
+                }
             }
            
         }
-        public TcpListener Owner { set; get; }
+        public GaeaTcpListener Owner { set; get; }
     }
 
 
-    public class TcpListener
+    public class GaeaTcpListener
     {
         private Socket socket = null;
 
 
         Type socketContextClassType = null;
 
-        public SocketContext GetSocketContext()
+        public GaeaSocketContext GetSocketContext()
         {
-            SocketContext context = (SocketContext)System.Activator.CreateInstance(socketContextClassType);            
+            GaeaSocketContext context = (GaeaSocketContext)System.Activator.CreateInstance(socketContextClassType);            
             return context;
         }
 
@@ -67,15 +73,17 @@ namespace Gaea.Net.Core
 
         public void CheckPostRequest()
         {
-            if (socket == null) return;
             AcceptRequest req = GetAcceptRequest();
-            PostAcceptRequest(req);
+            if (!PostAcceptRequest(req))
+            {   // 投递失败
+                ReleaseAcceptRequest(req);
+            }
         }
 
 
         public void DoAfterAccept(AcceptRequest req)
         {
-            SocketContext context = GetSocketContext();
+            GaeaSocketContext context = GetSocketContext();
             context.RawSocket = req.SocketEventArg.AcceptSocket;
             TcpServer.AddContext(context);
             context.DoAfterAccept();
@@ -119,10 +127,13 @@ namespace Gaea.Net.Core
 
         public void Stop()
         {
-            if (socket != null)
+            lock (this)
             {
-                socket.Close();
-                socket = null;
+                if (socket != null)
+                {
+                    socket.Close();
+                    socket = null;
+                }
             }
         }
 
@@ -130,14 +141,20 @@ namespace Gaea.Net.Core
         ///  投递一个接收请求
         /// </summary>
         /// <param name="request"></param>
-        private void PostAcceptRequest(SocketRequest request)
+        private bool PostAcceptRequest(GaeaSocketRequest request)
         {
-            request.SocketEventArg.AcceptSocket = null;
-            bool iodepending = socket.AcceptAsync(request.SocketEventArg);
+            bool iodepending = true;
+            lock (this)
+            {
+                if (socket == null) return false;
+                request.SocketEventArg.AcceptSocket = null;
+                iodepending = socket.AcceptAsync(request.SocketEventArg);
+            }
             if (!iodepending)
             {   // returns false if the I/O operation completed synchronously
                 request.DoResponse();
             }
+            return true;
         }
 
         /// <summary>

@@ -21,16 +21,31 @@ namespace Gaea.Samples.Echo
             InitializeComponent();
             tcpSvr.Name = "ECHO服务";
             tcpSvr.OnContextRecvBuffer += OnRecvBuffer;
+            tcpSvr.OnContextConnected += OnContextConnected;
+            tcpSvr.OnContextDisconnected += OnContextDisconnected;
                 
         }
 
         private void Form1_Load(object sender, EventArgs e)
         {
-
-
+            
         }
 
-        public void OnRecvBuffer(SocketContext context, byte[] buffer, int len)
+        public void OnContextConnected(GaeaSocketContext context)
+        {
+            // 如果输出日志，会占用主线程资源
+            Debug.WriteLine(String.Format("[{0}:{1}]建立连接成功!",
+                 context.RemoteHost, context.RemotePort));
+        }
+
+        public void OnContextDisconnected(GaeaSocketContext context)
+        {
+            // 如果输出日志，会占用主线程资源
+            Debug.WriteLine(String.Format("[{0}:{1}]断开连接!",
+                 context.RemoteHost, context.RemotePort));
+        }
+
+        public void OnRecvBuffer(GaeaSocketContext context, byte[] buffer, int len)
         {
             // 如果输出日志，会占用主线程资源
             //Debug.WriteLine(String.Format("{0}接收到数据, 长度:{1}", context.RawSocket.Handle, len));
@@ -52,7 +67,10 @@ namespace Gaea.Samples.Echo
             else
             {
                 tcpSvr.DefaultPort = int.Parse(txtPort.Text);
+
+                // 注册自己的Context扩展类
                 //tcpSvr.DefaultListener.RegisterContextClass(typeof(GaeaSocketContext));
+
                 tcpSvr.Open();
                 btnStart.Text = "停止服务";
             }

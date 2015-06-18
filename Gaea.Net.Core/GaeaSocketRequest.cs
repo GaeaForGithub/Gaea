@@ -7,14 +7,14 @@ using System.Threading.Tasks;
 
 namespace Gaea.Net.Core
 {
-    public class SocketRequest
+    public class GaeaSocketRequest
     {
         private SocketAsyncEventArgs socketEventArg = new SocketAsyncEventArgs();
 
         public SocketAsyncEventArgs SocketEventArg { get { return socketEventArg; } }
 
 
-        public SocketRequest()
+        public GaeaSocketRequest()
         {
             socketEventArg.UserToken = this;
             SocketEventArg.Completed += new EventHandler<SocketAsyncEventArgs>(SocketEventArg_Completed);

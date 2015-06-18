@@ -122,7 +122,17 @@ namespace Gaea.Net.Core
         /// </summary>
         public void Start()
         {
-            Start(Port);
+            IPAddress ipAddr;
+            if (string.IsNullOrEmpty(Host))
+            {
+                ipAddr = IPAddress.Any;
+            }else
+            {           
+                ipAddr = IPAddress.Parse(Host);
+            }
+             
+            IPEndPoint p = new IPEndPoint(ipAddr, Port);
+            Start(p);
         }
 
         public void Stop()
@@ -167,6 +177,11 @@ namespace Gaea.Net.Core
         ///  设定侦听端口, 可以用Start()进行开启
         /// </summary>
         public int Port { get; set; }
+
+        /// <summary>
+        ///  设定绑定IP, 默认为空，绑定所有的IP("0.0.0.0")
+        /// </summary>
+        public string Host { set; get; }
 
     }
 }

@@ -6,6 +6,7 @@ using System.Data;
 using System.Diagnostics;
 using System.Drawing;
 using System.Linq;
+using System.Net;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -81,6 +82,21 @@ namespace Gaea.Samples.Echo
         private void Form1_FormClosed(object sender, FormClosedEventArgs e)
         {
             tcpSvr.Stop();
+        }
+
+        private void button1_Click(object sender, EventArgs e)
+        {
+            string s = "ab中国";
+            byte[] buffer = ASCIIEncoding.Default.GetBytes(s);
+
+            string s2 = ASCIIEncoding.Default.GetString(buffer);
+
+            IPAddress[] lst = Dns.GetHostAddresses("www.baidu.com");  // 也可以用机器名
+            
+            foreach (IPAddress ip in lst)
+            {
+                MessageBox.Show(ip.ToString());
+            }            
         }
     }
 }

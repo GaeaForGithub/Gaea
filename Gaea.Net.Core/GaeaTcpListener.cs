@@ -5,7 +5,9 @@ using System.Linq;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
+
 
 namespace Gaea.Net.Core
 {
@@ -16,6 +18,8 @@ namespace Gaea.Net.Core
         public override void DoResponse()
         {
             base.DoResponse();
+            Owner.IncAcceptResponse();
+
             bool allowAccept = true;
             Owner.TcpServer.DoAccept(SocketEventArg.AcceptSocket, ref allowAccept);
 
@@ -42,8 +46,14 @@ namespace Gaea.Net.Core
     {
         private Socket socket = null;
 
-
         Type socketContextClassType = null;
+
+
+        public void IncAcceptResponse()
+        {
+            TcpServer.Monitor.IncAcceptResponseCounter();
+        }
+        
 
         public GaeaSocketContext GetSocketContext()
         {
@@ -158,7 +168,8 @@ namespace Gaea.Net.Core
             {
                 if (socket == null) return false;
                 request.SocketEventArg.AcceptSocket = null;
-                iodepending = socket.AcceptAsync(request.SocketEventArg);
+                iodepending = socket.AcceptAsync(request.SocketEventArg);                
+                TcpServer.Monitor.IncAcceptPostCounter();
             }
             if (!iodepending)
             {   // returns false if the I/O operation completed synchronously

@@ -22,9 +22,15 @@ namespace Gaea.Net.Core
         public override void DoResponse()
         {
             base.DoResponse();
-
+            Context.OwnerServer.Monitor.IncSendResponseCounter();
             if (SocketEventArg.BytesTransferred > 0 && SocketEventArg.SocketError == SocketError.Success)
             {
+                Context.OwnerServer.Monitor.IncSendSize(SocketEventArg.BytesTransferred);
+
+#if DEBUG
+                Context.LogMessage(String.Format(GaeaStrRes.STR_TRACE_SendRequestResponse,
+                    Context.SocketHandle, SocketEventArg.BytesTransferred), LogLevel.lgvTrace);
+#endif                
                 Context.SendNextRequest();
             }
             else
@@ -44,7 +50,7 @@ namespace Gaea.Net.Core
         /// </summary>
         public virtual void DoCancel()
         {
-
+            Context.OwnerServer.Monitor.IncSendCancelCounter();
         }
         
     }
@@ -57,9 +63,11 @@ namespace Gaea.Net.Core
         public override void DoResponse()
         {
             base.DoResponse();
-
+            Context.OwnerServer.Monitor.IncRecvResponseCounter();
             if (SocketEventArg.BytesTransferred > 0 && SocketEventArg.SocketError == SocketError.Success)
             {
+                Context.OwnerServer.Monitor.IncRecvSize(SocketEventArg.BytesTransferred);
+
                 // 触发接收事件
                 Context.DoRecveiveBuffer(this.SocketEventArg);
             }
@@ -272,8 +280,11 @@ namespace Gaea.Net.Core
 
                     if (req.IsCloseRequest)
                     {   // 关闭请求
+#if DEBUG
                         LogMessage(String.Format(GaeaStrRes.STR_PostDisconnectRequest,
-                            SocketHandle), LogLevel.lgvDebug);
+                            SocketHandle), LogLevel.lgvTrace);
+#endif      
+
                         // 请求关闭当前连接
                         this.RequestDisconnect();
                     }
@@ -352,7 +363,8 @@ namespace Gaea.Net.Core
             req.Context = this;
             lock(sendCache)
             {                
-                sendCache.Add(req);     
+                sendCache.Add(req);
+                OwnerServer.Monitor.IncSendPostCounter();
                 if (!sending)
                 {
                     sending = true;
@@ -384,10 +396,13 @@ namespace Gaea.Net.Core
         public void PostReceiveRequest()
         {
             CheckInitalizeObjects();
+            
             if (!RawSocket.ReceiveAsync(recvRequest.SocketEventArg))
             {
                 recvRequest.DoResponse();
             }
+            OwnerServer.Monitor.IncRecvPostCounter();
+            
         }
     }
 }

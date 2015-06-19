@@ -40,6 +40,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="GaeaMonitor.cs" />
     <Compile Include="GaeaSocketContext.cs" />
     <Compile Include="GaeaSocketRequest.cs" />
     <Compile Include="GaeaStrRes.cs" />

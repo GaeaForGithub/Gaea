@@ -18,6 +18,7 @@ namespace Gaea.Net.Core
 
         public const string STR_WaitContextRelease = "[{0}]:即将进入等待所有连接断开时间，如果连接逻辑出现阻塞，或者造成线程阻塞，将无法正常停止...";
 
+        public const string STR_TRACE_SendRequestResponse = "[{0}]:成功响应完成一个发送请求, 处理字节:{1}!";
 
     
     }

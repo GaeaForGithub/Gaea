@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 
 namespace Gaea.Net.Core
 {
-    public enum LogLevel {lgvMessage, lgvDebug, lgvWarning, lgvError};
+    public enum LogLevel {lgvTrace, lgvDebug, lgvMessage, lgvWarning, lgvError };
 
     /// <summary>
     ///   接收数据事件
@@ -28,6 +28,9 @@ namespace Gaea.Net.Core
     {
         Hashtable onlineMap = new Hashtable();
         ManualResetEvent realseEvent = new ManualResetEvent(true);
+        GaeaMonitor monitor = new GaeaMonitor();
+
+        public GaeaMonitor Monitor { get { return monitor; } }
 
         /// <summary>
         ///  添加一个连接到在线列表中

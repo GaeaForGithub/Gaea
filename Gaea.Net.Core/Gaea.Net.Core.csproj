@@ -44,6 +44,7 @@
     <Compile Include="GaeaSocketContext.cs" />
     <Compile Include="GaeaSocketRequest.cs" />
     <Compile Include="GaeaStrRes.cs" />
+    <Compile Include="GaeaTcpClient.cs" />
     <Compile Include="GaeaTcpListener.cs" />
     <Compile Include="GaeaSocketServer.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

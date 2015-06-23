@@ -22,10 +22,11 @@ namespace Gaea.Net.Core
         public override void DoResponse()
         {
             base.DoResponse();
-            Context.OwnerServer.Monitor.IncSendResponseCounter();
+            Context.IncSendResponseCounter();
+
             if (SocketEventArg.BytesTransferred > 0 && SocketEventArg.SocketError == SocketError.Success)
             {
-                Context.OwnerServer.Monitor.IncSendSize(SocketEventArg.BytesTransferred);
+                Context.IncSendSize(SocketEventArg.BytesTransferred);
 
 #if DEBUG
                 Context.LogMessage(String.Format(GaeaStrRes.STR_TRACE_SendRequestResponse,
@@ -50,7 +51,7 @@ namespace Gaea.Net.Core
         /// </summary>
         public virtual void DoCancel()
         {
-            Context.OwnerServer.Monitor.IncSendCancelCounter();
+            Context.IncSendCancelCounter();
         }
         
     }
@@ -63,10 +64,10 @@ namespace Gaea.Net.Core
         public override void DoResponse()
         {
             base.DoResponse();
-            Context.OwnerServer.Monitor.IncRecvResponseCounter();
+            Context.IncRecvResponseCounter();
             if (SocketEventArg.BytesTransferred > 0 && SocketEventArg.SocketError == SocketError.Success)
             {
-                Context.OwnerServer.Monitor.IncRecvSize(SocketEventArg.BytesTransferred);
+                Context.IncRecvSize(SocketEventArg.BytesTransferred);
 
                 // 触发接收事件
                 Context.DoRecveiveBuffer(this.SocketEventArg);
@@ -97,6 +98,57 @@ namespace Gaea.Net.Core
         private SocketReceiveRequest recvRequest = null;
         public List<SocketSendRequest> sendCache = new List<SocketSendRequest>();
         public IntPtr SocketHandle { get; set; }
+
+        public void IncSendResponseCounter()
+        {
+            if (OwnerServer != null)
+            {
+                OwnerServer.Monitor.IncSendResponseCounter();
+            }
+        }
+
+        public void IncSendSize(long size)
+        {
+            if (OwnerServer != null)
+            {
+                OwnerServer.Monitor.IncSendSize(size);
+            }
+        }
+
+        public void IncSendCancelCounter()
+        {
+            if (OwnerServer != null)
+            {
+                OwnerServer.Monitor.IncSendCancelCounter();
+            }
+        }
+
+
+        public void IncRecvPostCounter()
+        {
+            if (OwnerServer != null)
+            {
+                OwnerServer.Monitor.IncRecvPostCounter();
+            }
+        }
+
+        public void IncRecvResponseCounter()
+        {
+            if (OwnerServer != null)
+            {
+                OwnerServer.Monitor.IncRecvResponseCounter();
+            }
+        }
+
+        public void IncRecvSize(long size)
+        {
+            if (OwnerServer != null)
+            {
+                OwnerServer.Monitor.IncRecvSize(size);
+            }
+        }
+
+
 
         /// <summary>
         ///  清理发送缓存，关闭时进行清理

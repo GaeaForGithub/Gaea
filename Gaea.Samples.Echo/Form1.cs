@@ -24,6 +24,7 @@ namespace Gaea.Samples.Echo
             tcpSvr.OnContextRecvBuffer += OnRecvBuffer;
             tcpSvr.OnContextConnected += OnContextConnected;
             tcpSvr.OnContextDisconnected += OnContextDisconnected;
+            Gaea.Net.UI.GaeaUIFactory.CreateGaeaTcpServerMonitor(pnlMonitor, tcpSvr);
                 
         }
 

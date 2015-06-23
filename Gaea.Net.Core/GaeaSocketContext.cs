@@ -101,7 +101,7 @@ namespace Gaea.Net.Core
         /// <summary>
         ///  清理发送缓存，关闭时进行清理
         /// </summary>
-        public void ClearSendCache()
+        private void ClearSendCache()
         {
             lock (sendCache)
             {
@@ -147,6 +147,8 @@ namespace Gaea.Net.Core
             // 移除在线连接
             OwnerServer.RemoveContext(this);
             OwnerServer.DoContextDisconnected(this);
+            OwnerServer.Monitor.DecOnline();
+            this.ClearSendCache();
             RawSocket.Close();
         }
 
@@ -159,6 +161,7 @@ namespace Gaea.Net.Core
             requestedDisconnect = false;
             AddRef();
             OwnerServer.DoContextConnected(this);
+            OwnerServer.Monitor.IncOnline();
         }
 
         /// <summary>

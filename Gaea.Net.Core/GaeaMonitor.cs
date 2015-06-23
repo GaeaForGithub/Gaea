@@ -14,10 +14,52 @@ namespace Gaea.Net.Core
         private long send_responsecounter = 0;
         private long send_cancelcounter = 0;
 
-        private long send_size = 0;
-        private long recv_postcounter = 0;
-        private long recv_responsecounter = 0;
-        private long recv_size = 0;
+        private long sendSize = 0;
+
+
+
+        private long recvPostCounter = 0;
+
+
+        private long recvResponseCounter = 0;
+
+
+        private long recvSize = 0;
+
+
+        private long onlineCounter = 0;
+
+
+
+        public long AcceptPostCounter { get { return accept_postcounter; } }
+
+        public long AcceptResponseCounter { get { return accept_responsecounter; } }
+
+        public long SendPostCounter { get { return send_postcounter; } }
+
+        public long SendResponseCounter { get { return send_responsecounter; } }
+
+        public long SendCancelCounter { get { return send_cancelcounter; } }
+
+        public long SendSize      {  get { return sendSize; }  }
+
+        public long OnlineCounter     {          get { return onlineCounter; }       }
+        public long RecvPostCounter { get { return recvPostCounter; }    }
+        public long RecvResponseCounter{ get { return recvResponseCounter; } }
+        
+        public long RecvSize { get { return recvSize; } }
+
+
+        
+        public void IncOnline()
+        {
+            Interlocked.Increment(ref onlineCounter);
+        }
+
+        public void DecOnline()
+        {
+            Interlocked.Decrement(ref onlineCounter);
+        }
 
 
         public void IncAcceptPostCounter()
@@ -46,23 +88,23 @@ namespace Gaea.Net.Core
 
         public void IncSendSize(long size)
         {
-            Interlocked.Add(ref send_size, size);
+            Interlocked.Add(ref sendSize, size);
         }
 
 
         public void IncRecvPostCounter()
         {
-            Interlocked.Increment(ref recv_postcounter);
+            Interlocked.Increment(ref recvPostCounter);
         }
 
         public void IncRecvResponseCounter()
         {
-            Interlocked.Increment(ref recv_responsecounter);
+            Interlocked.Increment(ref recvResponseCounter);
         }
 
         public void IncRecvSize(long size)
         {
-            Interlocked.Add(ref recv_size, size);
+            Interlocked.Add(ref recvSize, size);
         }
 
         public void Reset()
@@ -72,10 +114,10 @@ namespace Gaea.Net.Core
             send_postcounter = 0;
             send_responsecounter = 0;
             send_cancelcounter = 0;
-            send_size = 0;
-            recv_postcounter = 0;
-            recv_responsecounter = 0;
-            recv_size = 0;
+            sendSize = 0;
+            recvPostCounter = 0;
+            recvResponseCounter = 0;
+            recvSize = 0;
         }
     }
 }

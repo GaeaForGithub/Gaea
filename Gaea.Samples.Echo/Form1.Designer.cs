@@ -29,9 +29,10 @@
         private void InitializeComponent()
         {
             this.panel1 = new System.Windows.Forms.Panel();
+            this.button1 = new System.Windows.Forms.Button();
             this.txtPort = new System.Windows.Forms.TextBox();
             this.btnStart = new System.Windows.Forms.Button();
-            this.button1 = new System.Windows.Forms.Button();
+            this.pnlMonitor = new System.Windows.Forms.Panel();
             this.panel1.SuspendLayout();
             this.SuspendLayout();
             // 
@@ -43,8 +44,18 @@
             this.panel1.Dock = System.Windows.Forms.DockStyle.Top;
             this.panel1.Location = new System.Drawing.Point(0, 0);
             this.panel1.Name = "panel1";
-            this.panel1.Size = new System.Drawing.Size(744, 49);
+            this.panel1.Size = new System.Drawing.Size(744, 51);
             this.panel1.TabIndex = 0;
+            // 
+            // button1
+            // 
+            this.button1.Location = new System.Drawing.Point(307, 12);
+            this.button1.Name = "button1";
+            this.button1.Size = new System.Drawing.Size(75, 23);
+            this.button1.TabIndex = 2;
+            this.button1.Text = "获取百度IP";
+            this.button1.UseVisualStyleBackColor = true;
+            this.button1.Click += new System.EventHandler(this.button1_Click);
             // 
             // txtPort
             // 
@@ -64,21 +75,20 @@
             this.btnStart.UseVisualStyleBackColor = true;
             this.btnStart.Click += new System.EventHandler(this.btnStart_Click);
             // 
-            // button1
+            // pnlMonitor
             // 
-            this.button1.Location = new System.Drawing.Point(307, 12);
-            this.button1.Name = "button1";
-            this.button1.Size = new System.Drawing.Size(75, 23);
-            this.button1.TabIndex = 2;
-            this.button1.Text = "获取百度IP";
-            this.button1.UseVisualStyleBackColor = true;
-            this.button1.Click += new System.EventHandler(this.button1_Click);
+            this.pnlMonitor.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.pnlMonitor.Location = new System.Drawing.Point(0, 51);
+            this.pnlMonitor.Name = "pnlMonitor";
+            this.pnlMonitor.Size = new System.Drawing.Size(744, 344);
+            this.pnlMonitor.TabIndex = 1;
             // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 12F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(744, 395);
+            this.Controls.Add(this.pnlMonitor);
             this.Controls.Add(this.panel1);
             this.Name = "Form1";
             this.Text = "Form1";
@@ -96,6 +106,7 @@
         private System.Windows.Forms.TextBox txtPort;
         private System.Windows.Forms.Button btnStart;
         private System.Windows.Forms.Button button1;
+        private System.Windows.Forms.Panel pnlMonitor;
     }
 }
 

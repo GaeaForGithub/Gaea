@@ -22,9 +22,11 @@ namespace Gaea.Net.Core
 
     public delegate void OnContextEvent(GaeaSocketContext context);
 
+    public delegate void OnContextErrorEvent(GaeaSocketContext context, SocketError error);        
+
     public delegate void OnAcceptEvent(Socket acceptSocket, ref bool allowAccept);
 
-    public class GaeaSocketServer
+    public class GaeaSocketBase
     {
         Hashtable onlineMap = new Hashtable();
         ManualResetEvent realseEvent = new ManualResetEvent(true);
@@ -36,13 +38,28 @@ namespace Gaea.Net.Core
         ///  添加一个连接到在线列表中
         /// </summary>
         /// <param name="context"></param>
-        public void AddContext(GaeaSocketContext context)
+        public void AddToOnlineList(GaeaSocketContext context)
         {
-            context.OwnerServer = this;
             lock (onlineMap)
             {
                 onlineMap.Add(context.RawSocket.Handle, context);
                 realseEvent.Reset();
+            }
+        }
+
+        /// <summary>
+        ///  移除一个在线连接
+        /// </summary>
+        /// <param name="context"></param>
+        public void RemoveFromOnlineList(GaeaSocketContext context)
+        {
+            lock (onlineMap)
+            {
+                onlineMap.Remove(context.RawSocket.Handle);
+                if (onlineMap.Count == 0)
+                {
+                    realseEvent.Set();
+                }
             }
         }
 
@@ -115,21 +132,7 @@ namespace Gaea.Net.Core
             realseEvent.WaitOne();
         }
 
-        /// <summary>
-        ///  移除一个在线连接
-        /// </summary>
-        /// <param name="context"></param>
-        public void RemoveContext(GaeaSocketContext context)
-        {
-            lock (onlineMap)
-            {
-                onlineMap.Remove(context.RawSocket.Handle);
-                if (onlineMap.Count== 0)
-                {
-                    realseEvent.Set();
-                }
-            }
-        }
+
 
         /// <summary>
         ///  请求断开所有连接, 不一定会立刻断开

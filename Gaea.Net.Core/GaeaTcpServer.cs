@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace Gaea.Net.Core
 {
-    public class GaeaTcpServer:GaeaSocketServer
+    public class GaeaTcpServer:GaeaSocketBase
     {
         List<GaeaTcpListener> listeners = new List<GaeaTcpListener>();
         GaeaTcpListener defaultListener = null;

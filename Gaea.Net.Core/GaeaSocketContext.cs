@@ -173,7 +173,10 @@ namespace Gaea.Net.Core
         /// <param name="level"></param>
         public void LogMessage(string msg, LogLevel level)
         {
-            OwnerServer.LogMessage(msg, level);
+            if (OwnerServer != null)
+            {
+                OwnerServer.LogMessage(msg, level);
+            }
         }
 
         /// <summary>
@@ -196,25 +199,36 @@ namespace Gaea.Net.Core
         /// </summary>
         private void CloseContext()
         {
-            // 移除在线连接
-            OwnerServer.RemoveContext(this);
-            OwnerServer.DoContextDisconnected(this);
-            OwnerServer.Monitor.DecOnline();
+            if (OwnerServer != null)
+            {
+                // 移除在线连接
+                OwnerServer.RemoveFromOnlineList(this);
+                OwnerServer.DoContextDisconnected(this);
+                OwnerServer.Monitor.DecOnline();
+            }
             this.ClearSendCache();
             RawSocket.Close();
+            RawSocket = null;
+            active = false;
         }
 
         /// <summary>
         ///  接受到连接后，调用
         /// </summary>
-        public void DoAfterAccept()
+        public virtual void DoAfterConnected()
         {
             SocketHandle = RawSocket.Handle;
             requestedDisconnect = false;
+            sending = false;
             AddRef();
-            OwnerServer.DoContextConnected(this);
-            OwnerServer.Monitor.IncOnline();
+            if (OwnerServer != null)
+            {
+                OwnerServer.DoContextConnected(this);
+                OwnerServer.Monitor.IncOnline();
+            }
+            active = true;
         }
+
 
         /// <summary>
         ///  增加引用计数, 如果成功，代表可以使用
@@ -335,7 +349,7 @@ namespace Gaea.Net.Core
 
                     if (req.IsCloseRequest)
                     {   // 关闭请求
-#if DEBUG
+#if TRACE_DETAIL
                         LogMessage(String.Format(GaeaStrRes.STR_PostDisconnectRequest,
                             SocketHandle), LogLevel.lgvTrace);
 #endif      
@@ -381,7 +395,7 @@ namespace Gaea.Net.Core
             }
         }
 
-        public GaeaSocketServer OwnerServer { set; get; }
+        public GaeaSocketBase OwnerServer { set; get; }
 
         public void DoRecveiveBuffer(SocketAsyncEventArgs e)
         {
@@ -391,7 +405,10 @@ namespace Gaea.Net.Core
                 {
                     OnRecvBuffer(e);
 
-                    OwnerServer.DoContextReceive(this, e);
+                    if (OwnerServer != null)
+                    {
+                        OwnerServer.DoContextReceive(this, e);
+                    }
 
                     // 继续投递一个接收请求
                     PostReceiveRequest();
@@ -459,5 +476,9 @@ namespace Gaea.Net.Core
             OwnerServer.Monitor.IncRecvPostCounter();
             
         }
+
+        protected bool active = false;
+
+        public bool Active { get { return active; } }
     }
 }

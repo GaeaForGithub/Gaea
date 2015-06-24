@@ -29,7 +29,7 @@ namespace Gaea.Net.Core
         public virtual void DoResponse()
         {
 
-        }       
+        }
     }
 
 }

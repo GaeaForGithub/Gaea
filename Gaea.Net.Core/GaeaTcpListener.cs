@@ -95,8 +95,9 @@ namespace Gaea.Net.Core
         {
             GaeaSocketContext context = GetSocketContext();
             context.RawSocket = req.SocketEventArg.AcceptSocket;
-            TcpServer.AddContext(context);
-            context.DoAfterAccept();
+            context.OwnerServer = TcpServer;
+            TcpServer.AddToOnlineList(context);
+            context.DoAfterConnected();
             context.PostReceiveRequest();
 
             // 投递另外的接收请求

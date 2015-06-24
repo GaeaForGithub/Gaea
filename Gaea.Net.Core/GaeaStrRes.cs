@@ -16,6 +16,9 @@ namespace Gaea.Net.Core
 
         public const string STR_PostDisconnectRequest = "[{0}]:响应一个断开请求, 连接将被关闭";
 
+        public const string STR_ConnectionIsCreated = "连接已经被创建";
+        public const string STR_ConnectRequestException = "[{0}]:响应异步请求连接时出现异常, 错误代码:{1}";
+
         public const string STR_WaitContextRelease = "[{0}]:即将进入等待所有连接断开时间，如果连接逻辑出现阻塞，或者造成线程阻塞，将无法正常停止...";
 
         public const string STR_TRACE_SendRequestResponse = "[{0}]:成功响应完成一个发送请求, 处理字节:{1}!";

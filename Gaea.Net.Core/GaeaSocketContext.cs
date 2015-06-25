@@ -464,7 +464,7 @@ namespace Gaea.Net.Core
         }
 
         /// <summary>
-        ///  阻塞方式发送一段buffer, 阻塞至成功发送或者，请求被取消
+        ///  阻塞方式发送一段buffer, 阻塞至成功发送或者，请求被取消(连接断开)
         /// </summary>
         /// <param name="buffer"></param>
         /// <param name="startIndex"></param>
@@ -490,6 +490,12 @@ namespace Gaea.Net.Core
             return req.SocketEventArg.BytesTransferred;
         }
 
+        /// <summary>
+        ///  阻塞发送一个字符串, 阻塞至成功发送或者，请求被取消(连接断开)
+        /// </summary>
+        /// <param name="msg"></param>
+        /// <param name="strEncoding"></param>
+        /// <returns>返回成功发送的字节数</returns>
         public int BlockSendString(string msg, Encoding strEncoding)
         {
             byte[] buf = strEncoding.GetBytes(msg);

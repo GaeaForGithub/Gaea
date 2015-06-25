@@ -33,7 +33,7 @@ namespace Gaea.Net.UI
         {
             InitializeComponent();
             BuildMonitorDataSource();
-            this.dataGridView1.DataSource = datasource;
+            this.grdMonitor.DataSource = datasource;
             tmrMonitor.Enabled = true;
        
         }
@@ -45,7 +45,7 @@ namespace Gaea.Net.UI
             MonitorObject item;
             if (GaeaTcpServer == null) return;
 
-            DataGridView view = this.dataGridView1;
+            DataGridView view = this.grdMonitor;
             
             item = (MonitorObject)datasourceMap["state"];
             DataGridViewCell cell = view[1, 0];
@@ -61,8 +61,14 @@ namespace Gaea.Net.UI
             item = (MonitorObject)datasourceMap["online"];
             item.Value = GaeaTcpServer.Monitor.OnlineCounter.ToString();
 
+            item = (MonitorObject)datasourceMap["accept"];
+            item.Value = string.Format("投递:{0:#,0}, 响应:{1:#,0}",
+                  GaeaTcpServer.Monitor.AcceptPostCounter,
+                  GaeaTcpServer.Monitor.AcceptResponseCounter
+                    );
+
             item = (MonitorObject)datasourceMap["send"];
-            item.Value = string.Format("字节:{0:0,0}, 投递:{1}, 响应:{2}, 取消:{3}, 剩余:{4}",
+            item.Value = string.Format("字节:{0:#,0}  投递:{1:#,0}  响应:{2:#,0}  取消:{3:#,0}  剩余:{4:#,0}",
                   GaeaTcpServer.Monitor.SendSize,
                   GaeaTcpServer.Monitor.SendPostCounter,
                   GaeaTcpServer.Monitor.SendResponseCounter,
@@ -72,13 +78,22 @@ namespace Gaea.Net.UI
                     );
 
             item = (MonitorObject)datasourceMap["recv"];
-            item.Value = string.Format("字节:{0:0,0}, 投递:{1}, 响应:{2}, 剩余:{3}",
+            item.Value = string.Format("字节:{0:#,0}  投递:{1:#,0}  响应:{2:#,0}  剩余:{3:#,0}",
                   GaeaTcpServer.Monitor.RecvSize,
                   GaeaTcpServer.Monitor.RecvPostCounter,
                   GaeaTcpServer.Monitor.RecvResponseCounter,
                   GaeaTcpServer.Monitor.RecvPostCounter -
                     GaeaTcpServer.Monitor.RecvResponseCounter
                     );
+
+            item = (MonitorObject)datasourceMap["objSendReq"];
+            item.Value = string.Format("创建:{0:#,0}  销毁:{1:#,0}  借出:{2:#,0}  还回:{3:#,0}",
+                  GaeaTcpServer.Monitor.SendRequestCreateCounter,
+                  GaeaTcpServer.Monitor.SendRequestDestoryCounter,
+                  GaeaTcpServer.Monitor.SendRequestGetCounter,
+                  GaeaTcpServer.Monitor.SendRequestReleaseCounter
+                    );
+
 
             item = (MonitorObject)datasourceMap["speed"];
 
@@ -98,7 +113,7 @@ namespace Gaea.Net.UI
             item = (MonitorObject)datasourceMap["runtime"];
             item.Value = RunTime.GetRunTimeInfo();
 
-            dataGridView1.Invalidate();
+            grdMonitor.Invalidate();
         }
 
         private void BuildMonitorDataSource()
@@ -117,6 +132,13 @@ namespace Gaea.Net.UI
             datasourceMap.Add("online", item);
             datasource.Add(item);
 
+            // 
+            item = new MonitorObject();
+            item.Name = "请求连接";
+            item.Value = "";
+            datasourceMap.Add("accept", item);
+            datasource.Add(item);
+
             // 发送信息
             item = new MonitorObject();
             item.Name = "发送信息";
@@ -124,11 +146,16 @@ namespace Gaea.Net.UI
             datasourceMap.Add("send", item);
             datasource.Add(item);
 
-
             item = new MonitorObject();
             item.Name = "接收信息";
             item.Value = "";
             datasourceMap.Add("recv", item);
+            datasource.Add(item);
+
+            item = new MonitorObject();
+            item.Name = "发送对象";
+            item.Value = "";
+            datasourceMap.Add("objSendReq", item);
             datasource.Add(item);
 
             item = new MonitorObject();
@@ -146,7 +173,7 @@ namespace Gaea.Net.UI
 
             item = new MonitorObject();
             item.Name = "启动时间";
-            item.Value = string.Format("{0:yyyy-MM-dd hh:mm:ss}", DateTime.Now);
+            item.Value = string.Format("{0:yyyy-MM-dd HH:mm:ss}", DateTime.Now);
             datasourceMap.Add("startuptime", item);
             datasource.Add(item);
 

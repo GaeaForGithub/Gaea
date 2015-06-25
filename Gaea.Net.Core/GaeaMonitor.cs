@@ -14,6 +14,15 @@ namespace Gaea.Net.Core
         private long send_responsecounter = 0;
         private long send_cancelcounter = 0;
 
+        private long sendRequestCreateCounter = 0;
+        private long sendRequestDestoryCounter = 0;
+
+        private long sendRequestGetCounter = 0;
+        private long sendRequestReleaseCounter = 0;
+
+
+
+
         private long sendSize = 0;
 
 
@@ -49,7 +58,13 @@ namespace Gaea.Net.Core
         
         public long RecvSize { get { return recvSize; } }
 
+        public long SendRequestCreateCounter   {         get { return sendRequestCreateCounter; }     }
 
+        public long SendRequestDestoryCounter   {        get { return sendRequestDestoryCounter; }  }
+
+        public long SendRequestGetCounter { get { return sendRequestGetCounter; } }
+
+        public long SendRequestReleaseCounter { get { return sendRequestReleaseCounter; } }
         
         public void IncOnline()
         {
@@ -61,6 +76,25 @@ namespace Gaea.Net.Core
             Interlocked.Decrement(ref onlineCounter);
         }
 
+        public void IncSendRequestCreateCounter()
+        {
+            Interlocked.Increment(ref sendRequestCreateCounter);
+        }
+
+        public void IncSendRequestDestroyCounter()
+        {
+            Interlocked.Increment(ref sendRequestDestoryCounter);
+        }
+
+        public void IncSendRequestGetCounter()
+        {
+            Interlocked.Increment(ref sendRequestGetCounter);
+        }
+
+        public void IncSendRequestReleaseCounter()
+        {
+            Interlocked.Increment(ref sendRequestReleaseCounter);
+        }
 
         public void IncAcceptPostCounter()
         {
@@ -118,6 +152,10 @@ namespace Gaea.Net.Core
             recvPostCounter = 0;
             recvResponseCounter = 0;
             recvSize = 0;
+            sendRequestDestoryCounter = 0;
+            sendRequestCreateCounter = 0;
+            sendRequestGetCounter = 0;
+            sendRequestReleaseCounter = 0;
         }
     }
 }

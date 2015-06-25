@@ -9,8 +9,18 @@ using System.Threading.Tasks;
 
 namespace Gaea.Net.Core
 {
+   
+    public static class SocketContextPoolCenter
+    {
+        public static GaeaObjectPool<SocketSendRequest> SendRequestPool = new GaeaObjectPool<SocketSendRequest>();
+    }
+
+
     public class SocketSendRequest:GaeaSocketRequest
     {
+        public GaeaObjectPool<SocketSendRequest> Pool { set; get; }
+
+        public GaeaMonitor Monitor { set; get; }
 
         private ManualResetEvent blockEvent = new ManualResetEvent(true);
 
@@ -19,7 +29,19 @@ namespace Gaea.Net.Core
         /// </summary>
         public ManualResetEvent BlockEvent { get { return blockEvent; } }
 
+        ~SocketSendRequest()
+        {
+            if (Monitor != null)
+            {
+                Monitor.IncSendRequestDestroyCounter();
+            }         
+        }
 
+        public void DoCleanUp()
+        {
+            IsCloseRequest = false;
+            blockEvent.Reset();
+        }
 
         public GaeaSocketContext Context { set; get; }
 
@@ -37,7 +59,7 @@ namespace Gaea.Net.Core
             {
                 Context.IncSendSize(SocketEventArg.BytesTransferred);
 
-#if DEBUG
+#if TRACE_DETAIL
                 Context.LogMessage(String.Format(GaeaStrRes.STR_TRACE_SendRequestResponse,
                     Context.SocketHandle, SocketEventArg.BytesTransferred), LogLevel.lgvTrace);
 #endif                
@@ -54,7 +76,22 @@ namespace Gaea.Net.Core
                     Context.SocketHandle, SocketEventArg.BytesTransferred, SocketEventArg.SocketError), LogLevel.lgvDebug);
 
                 Context.RequestDisconnect();
-            }            
+            }
+
+            if (Pool != null)
+            {
+                Pool.ReleaseObject(this);
+                Pool = null;
+                if (Monitor != null)
+                {
+                    Monitor.IncSendRequestReleaseCounter();
+                }
+            }
+            else
+            {
+                this.SocketEventArg.Dispose();
+            }
+  
         }
 
         /// <summary>
@@ -64,8 +101,27 @@ namespace Gaea.Net.Core
         public virtual void DoCancel()
         {
             Context.IncSendCancelCounter();
+
+            if (Pool != null)
+            {
+                Pool.ReleaseObject(this);
+                Pool = null;
+                if (Monitor!=null)
+                {
+                    Monitor.IncSendRequestReleaseCounter();
+                }
+            }
+            else
+            {
+                this.SocketEventArg.Dispose();
+            }
         }
 
+        /// <summary>
+        ///  取消请求，暂时没找到好的方法，该方法暂时闲职
+        ///   设计思想:
+        ///     投的的请求，底层还未来得及处理时，进行取消。
+        /// </summary>
         public void CancelRequest()
         {
         }
@@ -105,7 +161,7 @@ namespace Gaea.Net.Core
                 blockEvent.Set();
 
                 Context.LogMessage(String.Format(GaeaStrRes.STR_ReceiveException,
-                    Context.RawSocket.Handle, SocketEventArg.BytesTransferred, SocketEventArg.SocketError), LogLevel.lgvDebug);
+                    Context.SocketHandle, SocketEventArg.BytesTransferred, SocketEventArg.SocketError), LogLevel.lgvDebug);
 
                 Context.RequestDisconnect();
             }
@@ -155,6 +211,22 @@ namespace Gaea.Net.Core
             if (OwnerServer != null)
             {
                 OwnerServer.Monitor.IncSendCancelCounter();
+            }
+        }
+
+        public void IncSendRequestCreateCounter()
+        {
+            if (OwnerServer != null)
+            {
+                OwnerServer.Monitor.IncSendRequestCreateCounter();
+            }
+        }
+
+        public void IncSendRequestDestroyCounter()
+        {
+            if (OwnerServer != null)
+            {
+                OwnerServer.Monitor.IncSendRequestDestroyCounter();
             }
         }
 
@@ -330,7 +402,7 @@ namespace Gaea.Net.Core
         /// </summary>
         public void PostDisconnectRequest()
         {
-            SocketSendRequest req = new SocketSendRequest();
+            SocketSendRequest req = GetSocketSendRequest();
             req.IsCloseRequest = true;
             PostSendRequest(req);
         }
@@ -380,13 +452,14 @@ namespace Gaea.Net.Core
                         req = sendCache[0];
                         sendCache.RemoveAt(0);
                     }
+                    
 
                     if (req.IsCloseRequest)
                     {   // 关闭请求
 #if TRACE_DETAIL
                         LogMessage(String.Format(GaeaStrRes.STR_PostDisconnectRequest,
                             SocketHandle), LogLevel.lgvTrace);
-#endif      
+#endif
 
                         // 请求关闭当前连接
                         this.RequestDisconnect();
@@ -464,6 +537,36 @@ namespace Gaea.Net.Core
         }
 
         /// <summary>
+        ///  获取一个SocketSendRequest对象
+        /// </summary>
+        /// <returns></returns>
+        private SocketSendRequest GetSocketSendRequest()
+        {
+            SocketSendRequest req = SocketContextPoolCenter.SendRequestPool.GetObject();
+            if (req == null)
+            {
+                req = new SocketSendRequest();
+                this.IncSendRequestCreateCounter();
+            }
+
+            if (OwnerServer != null)
+            {
+                OwnerServer.Monitor.IncSendRequestGetCounter();
+            }
+
+            req.DoCleanUp();
+
+            if (OwnerServer != null)
+            {
+                req.Monitor = OwnerServer.Monitor;
+            }
+            req.Pool = SocketContextPoolCenter.SendRequestPool; 
+            req.Context = this;
+            return req;
+        }
+    
+
+        /// <summary>
         ///  阻塞方式发送一段buffer, 阻塞至成功发送或者，请求被取消(连接断开)
         /// </summary>
         /// <param name="buffer"></param>
@@ -473,7 +576,8 @@ namespace Gaea.Net.Core
         /// <returns>返回成功发送的字节数</returns>
         public int BlockSendBuffer(byte[] buffer, int startIndex, int len, bool copyBuffer)
         {
-            SocketSendRequest req = new SocketSendRequest();            
+            SocketSendRequest req = GetSocketSendRequest();
+            
             if (copyBuffer)
             {
                 byte[] tmpBuffer = new byte[len];
@@ -506,16 +610,19 @@ namespace Gaea.Net.Core
         public void PostSendRequest(SocketSendRequest req)
         {
             bool start = false;
-            req.Context = this;
             lock(sendCache)
             {                
-                sendCache.Add(req);
-                OwnerServer.Monitor.IncSendPostCounter();
+                sendCache.Add(req);                
                 if (!sending)
                 {
                     sending = true;
                     start = true;
                 }
+            }
+
+            if (OwnerServer != null)
+            {
+                OwnerServer.Monitor.IncSendPostCounter();
             }
     
             if (start)
@@ -524,9 +631,17 @@ namespace Gaea.Net.Core
             }
         }
 
+        /// <summary>
+        ///  投递一个发送请求
+        /// </summary>
+        /// <param name="buffer"></param>
+        /// <param name="startIndex"></param>
+        /// <param name="len"></param>
+        /// <param name="copyBuffer"></param>
         public void PostSendRequest(byte[] buffer, int startIndex, int len, bool copyBuffer)
         {
-            SocketSendRequest req = new SocketSendRequest();
+            SocketSendRequest req = GetSocketSendRequest();
+
             if (copyBuffer)
             {
                 byte[] tmpBuffer = new byte[len];
@@ -542,14 +657,17 @@ namespace Gaea.Net.Core
         public void PostReceiveRequest()
         {
             CheckInitalizeObjects();
-
             recvRequest.BlockEvent.Reset();
 
             if (!RawSocket.ReceiveAsync(recvRequest.SocketEventArg))
             {
                 recvRequest.DoResponse();
             }
-            OwnerServer.Monitor.IncRecvPostCounter();
+
+            if (OwnerServer != null)
+            {
+                OwnerServer.Monitor.IncRecvPostCounter();
+            }
             
         }
 

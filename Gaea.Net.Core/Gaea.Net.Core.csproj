@@ -18,7 +18,7 @@
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
     <OutputPath>bin\Debug\</OutputPath>
-    <DefineConstants>TRACE;DEBUG;TRACE_DETAIL</DefineConstants>
+    <DefineConstants>TRACE;DEBUG</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
@@ -42,6 +42,7 @@
   <ItemGroup>
     <Compile Include="GaeaMonitor.cs" />
     <Compile Include="GaeaNetUtils.cs" />
+    <Compile Include="GaeaObjectPool.cs" />
     <Compile Include="GaeaSocketContext.cs" />
     <Compile Include="GaeaSocketRequest.cs" />
     <Compile Include="GaeaStrRes.cs" />

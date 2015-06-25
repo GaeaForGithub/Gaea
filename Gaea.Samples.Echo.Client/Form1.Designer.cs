@@ -123,7 +123,7 @@
             this.Controls.Add(this.pnlRecv);
             this.Controls.Add(this.pnlTop);
             this.Name = "Form1";
-            this.Text = "Form1";
+            this.Text = "Gaea.Net.Echo.Client";
             this.Load += new System.EventHandler(this.Form1_Load);
             this.pnlTop.ResumeLayout(false);
             this.pnlTop.PerformLayout();

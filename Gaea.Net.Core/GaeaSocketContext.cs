@@ -12,6 +12,15 @@ namespace Gaea.Net.Core
     public class SocketSendRequest:GaeaSocketRequest
     {
 
+        private ManualResetEvent blockEvent = new ManualResetEvent(true);
+
+        /// <summary>
+        ///  阻塞Event，响应时会设置信号
+        /// </summary>
+        public ManualResetEvent BlockEvent { get { return blockEvent; } }
+
+
+
         public GaeaSocketContext Context { set; get; }
 
         /// <summary>
@@ -32,17 +41,20 @@ namespace Gaea.Net.Core
                 Context.LogMessage(String.Format(GaeaStrRes.STR_TRACE_SendRequestResponse,
                     Context.SocketHandle, SocketEventArg.BytesTransferred), LogLevel.lgvTrace);
 #endif                
+                
+                blockEvent.Set();
+
                 Context.SendNextRequest();
             }
             else
             {
+                blockEvent.Set();
+
                 Context.LogMessage(String.Format(GaeaStrRes.STR_SendContextException,
                     Context.SocketHandle, SocketEventArg.BytesTransferred, SocketEventArg.SocketError), LogLevel.lgvDebug);
 
                 Context.RequestDisconnect();
-            }
-
-            
+            }            
         }
 
         /// <summary>
@@ -53,27 +65,45 @@ namespace Gaea.Net.Core
         {
             Context.IncSendCancelCounter();
         }
+
+        public void CancelRequest()
+        {
+        }
         
     }
 
 
-
+    /// <summary>
+    ///   接受请求类    
+    /// </summary>    
     public class SocketReceiveRequest:GaeaSocketRequest
     {
+        private ManualResetEvent blockEvent = new ManualResetEvent(true);
+
+        /// <summary>
+        ///  阻塞Event，投递时可以手动重置信号，响应时会自动设置信号
+        /// </summary>
+        public ManualResetEvent BlockEvent { get { return blockEvent; } }
+
         public GaeaSocketContext Context { set; get; }
+
         public override void DoResponse()
         {
             base.DoResponse();
             Context.IncRecvResponseCounter();
             if (SocketEventArg.BytesTransferred > 0 && SocketEventArg.SocketError == SocketError.Success)
             {
-                Context.IncRecvSize(SocketEventArg.BytesTransferred);
+                Context.IncRecvSize(SocketEventArg.BytesTransferred);                
 
                 // 触发接收事件
                 Context.DoRecveiveBuffer(this.SocketEventArg);
+
+                blockEvent.Set();
             }
             else
             {
+                blockEvent.Set();
+
                 Context.LogMessage(String.Format(GaeaStrRes.STR_ReceiveException,
                     Context.RawSocket.Handle, SocketEventArg.BytesTransferred, SocketEventArg.SocketError), LogLevel.lgvDebug);
 
@@ -85,6 +115,11 @@ namespace Gaea.Net.Core
 
     
 
+    /// <summary>
+    ///  连接对应的上下文
+    ///  阻塞接收暂时未处理.暂时没有好的思路。
+    ///   （如果阻塞接收的话，不能在一开始就投递接收请求）
+    /// </summary>
     public class GaeaSocketContext
     {
         private int refcount = 0;
@@ -191,7 +226,6 @@ namespace Gaea.Net.Core
                 recvRequest.Context = this;
                 recvRequest.SocketEventArg.SetBuffer(recvBuffer, 0, recvBufferLen);
             }
-               
         }
 
         /// <summary>
@@ -429,6 +463,40 @@ namespace Gaea.Net.Core
             
         }
 
+        /// <summary>
+        ///  阻塞方式发送一段buffer, 阻塞至成功发送或者，请求被取消
+        /// </summary>
+        /// <param name="buffer"></param>
+        /// <param name="startIndex"></param>
+        /// <param name="len"></param>
+        /// <param name="copyBuffer"></param>
+        /// <returns>返回成功发送的字节数</returns>
+        public int BlockSendBuffer(byte[] buffer, int startIndex, int len, bool copyBuffer)
+        {
+            SocketSendRequest req = new SocketSendRequest();            
+            if (copyBuffer)
+            {
+                byte[] tmpBuffer = new byte[len];
+                Array.Copy(buffer, startIndex, tmpBuffer, 0, len);
+                req.SocketEventArg.SetBuffer(tmpBuffer, 0, len);
+            }
+            else
+            {
+                req.SocketEventArg.SetBuffer(buffer, startIndex, len);
+            }
+            req.BlockEvent.Reset();
+            PostSendRequest(req);
+            req.BlockEvent.WaitOne();            
+            return req.SocketEventArg.BytesTransferred;
+        }
+
+        public int BlockSendString(string msg, Encoding strEncoding)
+        {
+            byte[] buf = strEncoding.GetBytes(msg);
+            int rvalue = BlockSendBuffer(buf, 0, buf.Length, false);
+            return rvalue;
+        }
+
         public void PostSendRequest(SocketSendRequest req)
         {
             bool start = false;
@@ -468,7 +536,9 @@ namespace Gaea.Net.Core
         public void PostReceiveRequest()
         {
             CheckInitalizeObjects();
-            
+
+            recvRequest.BlockEvent.Reset();
+
             if (!RawSocket.ReceiveAsync(recvRequest.SocketEventArg))
             {
                 recvRequest.DoResponse();

@@ -62,7 +62,11 @@ namespace Gaea.Net.UI
             item.Value = GaeaTcpServer.Monitor.OnlineCounter.ToString();
 
             item = (MonitorObject)datasourceMap["accept"];
-            item.Value = string.Format("投递:{0:#,0}, 响应:{1:#,0}",
+            item.Value = string.Format("创建:{0:#,0}  销毁:{1:#,0}  借出:{2:#,0}  还回:{3:#,0}  投递:{4:#,0}  响应:{5:#,0}",
+                  GaeaTcpServer.Monitor.AcceptCreateCounter,
+                  GaeaTcpServer.Monitor.AcceptDestroyCounter,
+                  GaeaTcpServer.Monitor.AcceptRequestGetCounter,
+                  GaeaTcpServer.Monitor.AcceptRequestReleaseCounter,
                   GaeaTcpServer.Monitor.AcceptPostCounter,
                   GaeaTcpServer.Monitor.AcceptResponseCounter
                     );
@@ -134,7 +138,7 @@ namespace Gaea.Net.UI
 
             // 
             item = new MonitorObject();
-            item.Name = "请求连接";
+            item.Name = "连接请求";
             item.Value = "";
             datasourceMap.Add("accept", item);
             datasource.Add(item);

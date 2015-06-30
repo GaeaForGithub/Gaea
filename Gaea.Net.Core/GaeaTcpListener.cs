@@ -11,32 +11,36 @@ using System.Threading.Tasks;
 
 namespace Gaea.Net.Core
 {
-
+    static class PoolCenter
+    {
+        public static GaeaObjectPool<AcceptRequest> AcceptRequestPool = new GaeaObjectPool<AcceptRequest>();
+    }
 
     public class AcceptRequest : GaeaSocketRequest
     {
+
+        public GaeaMonitor Monitor { set; get; }
+
+        public GaeaObjectPool<AcceptRequest> Pool { set; get; }
+
         public override void DoResponse()
         {
             base.DoResponse();
             Owner.IncAcceptResponse();
 
-            bool allowAccept = true;
-            Owner.TcpServer.DoAccept(SocketEventArg.AcceptSocket, ref allowAccept);
+            Owner.DoAfterAccept(this);
 
-            if (allowAccept)
-            {
-                if (SocketEventArg.SocketError == SocketError.Success)
-                {
-                    Owner.DoAfterAccept(this);
-                }
-                else
-                {
-                    Owner.TcpServer.LogMessage(String.Format(GaeaStrRes.STR_AcceptException,
-                        Owner.TcpServer.Name, SocketEventArg.SocketError), LogLevel.lgvDebug);
-                    Owner.CheckPostRequest();
-                }
-            }
+
+            Owner.ReleaseAcceptRequest(this);           
            
+        }
+
+        ~AcceptRequest()
+        {
+            if (Monitor!=null)
+            {
+                Monitor.IncAcceptDestroyCounter();
+            }
         }
         public GaeaTcpListener Owner { set; get; }
     }
@@ -44,6 +48,8 @@ namespace Gaea.Net.Core
 
     public class GaeaTcpListener
     {
+        public static GaeaObjectPool<GaeaSocketContext> ContextPool = new GaeaObjectPool<GaeaSocketContext>();
+
         private Socket socket = null;
 
         Type socketContextClassType = null;
@@ -57,7 +63,13 @@ namespace Gaea.Net.Core
 
         public GaeaSocketContext GetSocketContext()
         {
-            GaeaSocketContext context = (GaeaSocketContext)System.Activator.CreateInstance(socketContextClassType);            
+            GaeaSocketContext context = ContextPool.GetObject();
+            if (context == null)
+            {
+                context = (GaeaSocketContext)System.Activator.CreateInstance(socketContextClassType);    
+                //this.IncSendRequestCreateCounter();
+            }
+            context.Pool = ContextPool;
             return context;
         }
 
@@ -69,19 +81,29 @@ namespace Gaea.Net.Core
 
         private AcceptRequest GetAcceptRequest()
         {
-            AcceptRequest req = new AcceptRequest();
+            AcceptRequest req = PoolCenter.AcceptRequestPool.GetObject();
+            if (req == null)
+            {
+                req = new AcceptRequest();
+                TcpServer.Monitor.IncAcceptCreateCounter();
+            }            
+            req.Pool = PoolCenter.AcceptRequestPool;
             req.Owner = this;
+            req.Monitor = TcpServer.Monitor;
+            TcpServer.Monitor.IncAcceptGetCounter();
             return req;
         }
 
-        private void ReleaseAcceptRequest(AcceptRequest req)
+        public void ReleaseAcceptRequest(AcceptRequest req)
         {
             req.Owner = null;
+            req.Pool.ReleaseObject(req);
+            TcpServer.Monitor.IncAcceptRequestReleaseCounter();            
             return;
         }  
 
 
-        public void CheckPostRequest()
+        private void PostARequest()
         {
             AcceptRequest req = GetAcceptRequest();
             if (!PostAcceptRequest(req))
@@ -90,18 +112,39 @@ namespace Gaea.Net.Core
             }
         }
 
+        public void DoPostRequest(int num)
+        {
+            for (int i =0;i<num; i ++)
+            {
+                PostARequest();
+            }
+        }
 
+        
         public void DoAfterAccept(AcceptRequest req)
         {
-            GaeaSocketContext context = GetSocketContext();
-            context.RawSocket = req.SocketEventArg.AcceptSocket;
-            context.OwnerServer = TcpServer;
-            TcpServer.AddToOnlineList(context);
-            context.DoAfterConnected();
-            context.PostReceiveRequest();
+            if (req.SocketEventArg.SocketError == SocketError.Success)
+            {
+                bool allowAccept = true;
+                TcpServer.DoAccept(req.SocketEventArg.AcceptSocket, ref allowAccept);
+                if (allowAccept)
+                {
+                    GaeaSocketContext context = GetSocketContext();
+                    context.RawSocket = req.SocketEventArg.AcceptSocket;
+                    context.OwnerServer = TcpServer;
+                    TcpServer.AddToOnlineList(context);
+                    context.DoAfterConnected();
+                    context.PostReceiveRequest();
+                }
+            }
+            else
+            {
+                TcpServer.LogMessage(String.Format(GaeaStrRes.STR_AcceptException,
+                    TcpServer.Name, req.SocketEventArg.SocketError), LogLevel.lgvDebug);
+            }
 
             // 投递另外的接收请求
-            CheckPostRequest();
+            PostARequest();
         }
         
 

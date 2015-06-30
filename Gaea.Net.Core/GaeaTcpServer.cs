@@ -24,7 +24,7 @@ namespace Gaea.Net.Core
         public void Open()
         {
             defaultListener.Start();
-            defaultListener.CheckPostRequest();      
+            defaultListener.DoPostRequest(100);     
             active = true;
         }
 

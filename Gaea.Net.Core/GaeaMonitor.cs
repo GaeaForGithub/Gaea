@@ -8,8 +8,14 @@ namespace Gaea.Net.Core
 {
     public class GaeaMonitor
     {
+
         private long accept_postcounter = 0;
         private long accept_responsecounter = 0;
+        private long acceptCreateCounter = 0;
+        private long acceptDestroyCounter = 0;
+        private long acceptRequestGetCounter = 0;
+        private long acceptRequestReleaseCounter = 0;
+
         private long send_postcounter = 0;
         private long send_responsecounter = 0;
         private long send_cancelcounter = 0;
@@ -37,12 +43,23 @@ namespace Gaea.Net.Core
 
 
         private long onlineCounter = 0;
+ 
 
 
 
         public long AcceptPostCounter { get { return accept_postcounter; } }
 
         public long AcceptResponseCounter { get { return accept_responsecounter; } }
+
+        public long AcceptCreateCounter { get { return acceptCreateCounter; } }
+
+        public long AcceptDestroyCounter { get { return acceptDestroyCounter; } }
+
+        public long AcceptRequestGetCounter { get { return acceptRequestGetCounter; } }
+
+
+
+        public long AcceptRequestReleaseCounter { get { return acceptRequestReleaseCounter; } }
 
         public long SendPostCounter { get { return send_postcounter; } }
 
@@ -65,6 +82,7 @@ namespace Gaea.Net.Core
         public long SendRequestGetCounter { get { return sendRequestGetCounter; } }
 
         public long SendRequestReleaseCounter { get { return sendRequestReleaseCounter; } }
+
         
         public void IncOnline()
         {
@@ -99,6 +117,26 @@ namespace Gaea.Net.Core
         public void IncAcceptPostCounter()
         {
             Interlocked.Increment(ref accept_postcounter);
+        }
+
+        public void IncAcceptCreateCounter()
+        {
+            Interlocked.Increment(ref acceptCreateCounter);
+        }
+
+        public void IncAcceptGetCounter()
+        {
+            Interlocked.Increment(ref acceptRequestGetCounter);
+        }
+
+        public void IncAcceptDestroyCounter()
+        {
+            Interlocked.Increment(ref acceptDestroyCounter);
+        }
+
+        public void IncAcceptRequestReleaseCounter()
+        {
+            Interlocked.Increment(ref acceptRequestReleaseCounter);
         }
 
         public void IncAcceptResponseCounter()

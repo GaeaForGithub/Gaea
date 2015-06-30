@@ -178,6 +178,8 @@ namespace Gaea.Net.Core
     /// </summary>
     public class GaeaSocketContext
     {
+        public GaeaObjectPool<GaeaSocketContext> Pool { set; get; }
+
         private int refcount = 0;
 
         // 是否已经请求了断开操作
@@ -316,6 +318,7 @@ namespace Gaea.Net.Core
             RawSocket.Close();
             RawSocket = null;
             active = false;
+            Pool.ReleaseObject(this);
         }
 
         /// <summary>

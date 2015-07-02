@@ -274,6 +274,14 @@ namespace Gaea.Net.Core
             }
         }
 
+        /// <summary>
+        ///  执行清理工作，归还到对象池时进行清理
+        /// </summary>
+        public virtual void DoCleanUp()
+        {
+
+        }
+
 
         /// <summary>
         ///  记录日志
@@ -318,6 +326,8 @@ namespace Gaea.Net.Core
             RawSocket.Close();
             RawSocket = null;
             active = false;
+            // 执行清理工作
+            DoCleanUp();
             Pool.ReleaseObject(this);
         }
 

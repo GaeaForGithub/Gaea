@@ -69,6 +69,7 @@ namespace Gaea.Net.Core
                 context = (GaeaSocketContext)System.Activator.CreateInstance(socketContextClassType);    
                 //this.IncSendRequestCreateCounter();
             }
+            
             context.Pool = ContextPool;
             return context;
         }

@@ -279,7 +279,7 @@ namespace Gaea.Net.Core
         /// </summary>
         public virtual void DoCleanUp()
         {
-
+            
         }
 
 
@@ -326,13 +326,21 @@ namespace Gaea.Net.Core
             RawSocket.Close();
             RawSocket = null;
             active = false;
+            requestedDisconnect = false;
+
+            if (refcount !=0)
+            {
+                Debug.WriteLine(String.Format("Context计数器：{0}, 没有归0,请注意核查!", refcount));
+                refcount = 0;
+            }
             // 执行清理工作
             DoCleanUp();
             Pool.ReleaseObject(this);
         }
 
         /// <summary>
-        ///  接受到连接后，调用
+        ///  接受到连接后成功后，调用
+        ///  执行了AddRef()
         /// </summary>
         public virtual void DoAfterConnected()
         {
@@ -358,6 +366,10 @@ namespace Gaea.Net.Core
             {
                 if (requestedDisconnect) return false;
                 refcount++;
+#if TRACE_DETAIL
+                LogMessage(String.Format("[{0}:{1}]AddRef",
+                    SocketHandle, refcount), LogLevel.lgvTrace);
+#endif
                 return true;
             }
         }
@@ -374,6 +386,11 @@ namespace Gaea.Net.Core
                 j = refcount;
             }
 
+#if TRACE_DETAIL
+            LogMessage(String.Format("[{0}:{1}]ReleaseRef",
+                SocketHandle, refcount), LogLevel.lgvTrace);
+#endif
+
             if (j==0)
             {
                 // 断开连接
@@ -387,6 +404,7 @@ namespace Gaea.Net.Core
         }
 
         /// <summary>
+        ///  第一次请求RequestDisconnect时会执行 releaseRef()
         ///  请求断开连接，如果连接正在工作(refcounter > 0)，会等待连接停止工作时再进行断开操作
         ///  执行后，会清未完成的发送请求，会取消Socket动作, 而且也不会再处理新请求。
         /// </summary>
@@ -397,7 +415,14 @@ namespace Gaea.Net.Core
             {
                 if (!requestedDisconnect)
                 {
-                    RawSocket.Shutdown(SocketShutdown.Both);                    
+                    if (RawSocket != null)
+                    {
+                        try
+                        {
+                            RawSocket.Shutdown(SocketShutdown.Both);
+                        }
+                        catch { }
+                    }
                     requestedDisconnect = true;
                     release = true;
                 }
@@ -498,8 +523,14 @@ namespace Gaea.Net.Core
             }
         }
 
+        /// <summary>
+        ///  原始Socket类
+        /// </summary>
         public Socket RawSocket { set; get; }
 
+        /// <summary>
+        ///  建立连接成功后，对方连接套接字的Host
+        /// </summary>
         public string RemoteHost { 
             get
             {
@@ -507,6 +538,9 @@ namespace Gaea.Net.Core
             }
         }
 
+        /// <summary>
+        ///  建立连接成功后，对方连接套接字的Port
+        /// </summary>
         public int RemotePort
         {
             get
@@ -687,5 +721,10 @@ namespace Gaea.Net.Core
         protected bool active = false;
 
         public bool Active { get { return active; } }
+
+        /// <summary>
+        ///  扩展对象
+        /// </summary>
+        public object Tag { get; set; }
     }
 }

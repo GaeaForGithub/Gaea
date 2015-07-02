@@ -48,6 +48,17 @@ namespace Gaea.Net.Core
         }
 
         /// <summary>
+        ///  从在线列表中查找对应的连接
+        /// </summary>
+        /// <param name="socketHandle"></param>
+        /// <returns></returns>
+        public GaeaSocketContext FindContextInOnlineList(IntPtr socketHandle)
+        {
+            object rvalue = onlineMap[socketHandle];
+            return (GaeaSocketContext)rvalue;
+        }
+
+        /// <summary>
         ///  移除一个在线连接
         /// </summary>
         /// <param name="context"></param>
@@ -55,7 +66,18 @@ namespace Gaea.Net.Core
         {
             lock (onlineMap)
             {
-                onlineMap.Remove(context.RawSocket.Handle);
+                if (context.RawSocket == null)
+                {
+#if DEBUG
+                    throw new Exception("UnException, debug...");
+#else
+                    onlineMap.Remove(context.SocketHandle);
+#endif
+                }
+                else
+                {
+                    onlineMap.Remove(context.RawSocket.Handle);
+                } 
                 if (onlineMap.Count == 0)
                 {
                     realseEvent.Set();

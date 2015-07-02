@@ -29,6 +29,10 @@ namespace Gaea.Net.Core
         }
         
 
+        /// <summary>
+        ///  异步请求连接完成后执行的
+        /// </summary>
+        /// <param name="req"></param>
         public void DoAfterConnectRequest(SocketConnectRequest req)
         {
             if (req.SocketEventArg.SocketError == SocketError.Success)
@@ -49,6 +53,9 @@ namespace Gaea.Net.Core
             }
         }
 
+        /// <summary>
+        ///   发起阻塞的连接请求
+        /// </summary>
         public void Connect()
         {
             if (RawSocket != null)
@@ -64,9 +71,12 @@ namespace Gaea.Net.Core
             RawSocket.Connect(p);
 
             DoAfterConnected();
-            this.PostReceiveRequest();
+            this.PostReceiveRequest();        
         }
 
+        /// <summary>
+        ///  发起异步连接请求
+        /// </summary>
         public void ConnectAsync()
         {
             if (RawSocket != null)

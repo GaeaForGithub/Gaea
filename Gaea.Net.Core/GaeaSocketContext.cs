@@ -335,7 +335,15 @@ namespace Gaea.Net.Core
             }
             // 执行清理工作
             DoCleanUp();
-            Pool.ReleaseObject(this);
+            if (Pool != null)
+            {
+                Pool.ReleaseObject(this);
+            }else
+            {
+#if DEBUG
+                throw new Exception("UnException, Assert in CloseContext");
+#endif
+            }
         }
 
         /// <summary>

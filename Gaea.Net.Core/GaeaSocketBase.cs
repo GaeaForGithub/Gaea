@@ -69,7 +69,7 @@ namespace Gaea.Net.Core
                 if (context.RawSocket == null)
                 {
 #if DEBUG
-                    throw new Exception("UnException, debug...");
+                    throw new Exception("UnException, Assert in RemoveFromOnlineList");
 #else
                     onlineMap.Remove(context.SocketHandle);
 #endif

@@ -71,8 +71,15 @@ namespace Gaea.Samples.Echo.Client
 
         private void btnSend_Click(object sender, EventArgs e)
         {
-            clientContext.BlockSendString(txtSend.Text, Encoding.Default);
-            sflogger.LogMessage("发送成功!");
+            try
+            {
+                clientContext.BlockSendString(txtSend.Text, Encoding.Default);
+                sflogger.LogMessage("发送成功!");
+            }catch(Exception ex)
+            {
+                sflogger.LogMessage(ex.Message);
+            }
+                
         }
 
         private void Form1_Load(object sender, EventArgs e)

@@ -89,6 +89,8 @@ namespace Gaea.Net.Core
             IPAddress ipAddr = GaeaNetUtils.ExtractFirstIPV4Address(Host);
             IPEndPoint p = new IPEndPoint(ipAddr, Port);
             connectRequest.SocketEventArg.RemoteEndPoint = p;
+            
+
 
             RawSocket.ConnectAsync(connectRequest.SocketEventArg);
         }

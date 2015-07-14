@@ -340,8 +340,8 @@ namespace Gaea.Net.Core
                 Pool.ReleaseObject(this);
             }else
             {
-#if DEBUG
-                throw new Exception("UnException, Assert in CloseContext");
+#if DEBUG  // 客户端Socket是没有Pool
+           //     throw new Exception("UnException, Assert in CloseContext");
 #endif
             }
         }

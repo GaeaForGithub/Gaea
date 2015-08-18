@@ -99,5 +99,35 @@ namespace Gaea.Samples.Echo
                 MessageBox.Show(ip.ToString());
             }            
         }
+
+        void DoTask()
+        {
+            IList<GaeaSocketContext> list = new List<GaeaSocketContext>();
+            tcpSvr.GetOnlineList(list);
+            foreach (GaeaSocketContext context in list)
+            {
+                if (context.AddRef())
+                {
+                    try
+                    {
+                        context.PostSendString("test push!");
+                        Thread.Sleep(5000);
+
+                    }finally
+                    {
+                        Debug.WriteLine(String.Format("[{0}:{1}]task_context_release!",  context.RemoteHost, context.RemotePort));
+                        context.ReleaseRef();
+                    }
+
+                }
+            }
+
+        }
+
+        private void button2_Click(object sender, EventArgs e)
+        {
+            Task task = new Task(DoTask);
+            task.Start();
+        }
     }
 }

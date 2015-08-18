@@ -29,7 +29,7 @@ namespace Gaea.Net.Core
     public class GaeaSocketBase
     {
         Hashtable onlineMap = new Hashtable();
-        ManualResetEvent realseEvent = new ManualResetEvent(true);
+        ManualResetEvent releaseEvent = new ManualResetEvent(true);
         GaeaMonitor monitor = new GaeaMonitor();
 
         public GaeaMonitor Monitor { get { return monitor; } }
@@ -43,7 +43,7 @@ namespace Gaea.Net.Core
             lock (onlineMap)
             {
                 onlineMap.Add(context.RawSocket.Handle, context);
-                realseEvent.Reset();
+                releaseEvent.Reset();
             }
         }
 
@@ -56,6 +56,21 @@ namespace Gaea.Net.Core
         {
             object rvalue = onlineMap[socketHandle];
             return (GaeaSocketContext)rvalue;
+        }
+
+        public int GetOnlineList(IList<GaeaSocketContext> list)
+        {
+            int rvalue = 0;
+            lock(onlineMap)
+            {
+                foreach (DictionaryEntry obj in onlineMap)
+                {
+                    list.Add((GaeaSocketContext)obj.Value); 
+                    rvalue++;
+                }
+            }
+        
+            return rvalue;
         }
 
         /// <summary>
@@ -80,7 +95,7 @@ namespace Gaea.Net.Core
                 } 
                 if (onlineMap.Count == 0)
                 {
-                    realseEvent.Set();
+                    releaseEvent.Set();
                 }
             }
         }
@@ -151,7 +166,7 @@ namespace Gaea.Net.Core
         public void WaitForContextRelease()
         {
             LogMessage(String.Format(GaeaStrRes.STR_WaitContextRelease, Name), LogLevel.lgvDebug);
-            realseEvent.WaitOne();
+            releaseEvent.WaitOne();
         }
 
 

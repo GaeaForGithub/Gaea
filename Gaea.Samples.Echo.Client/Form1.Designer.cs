@@ -28,20 +28,31 @@
         /// </summary>
         private void InitializeComponent()
         {
+            this.components = new System.ComponentModel.Container();
             this.pnlTop = new System.Windows.Forms.Panel();
+            this.txtTime = new System.Windows.Forms.TextBox();
+            this.btnTimerSend = new System.Windows.Forms.Button();
             this.btnSend = new System.Windows.Forms.Button();
             this.txtSend = new System.Windows.Forms.TextBox();
             this.txtPort = new System.Windows.Forms.TextBox();
             this.txtHost = new System.Windows.Forms.TextBox();
             this.btnConnect = new System.Windows.Forms.Button();
             this.pnlRecv = new System.Windows.Forms.Panel();
+            this.timer1 = new System.Windows.Forms.Timer(this.components);
+            this.panel1 = new System.Windows.Forms.Panel();
+            this.button1 = new System.Windows.Forms.Button();
             this.txtRecv = new System.Windows.Forms.TextBox();
+            this.btnDisconnect = new System.Windows.Forms.Button();
             this.pnlTop.SuspendLayout();
             this.pnlRecv.SuspendLayout();
+            this.panel1.SuspendLayout();
             this.SuspendLayout();
             // 
             // pnlTop
             // 
+            this.pnlTop.Controls.Add(this.btnDisconnect);
+            this.pnlTop.Controls.Add(this.txtTime);
+            this.pnlTop.Controls.Add(this.btnTimerSend);
             this.pnlTop.Controls.Add(this.btnSend);
             this.pnlTop.Controls.Add(this.txtSend);
             this.pnlTop.Controls.Add(this.txtPort);
@@ -52,6 +63,24 @@
             this.pnlTop.Name = "pnlTop";
             this.pnlTop.Size = new System.Drawing.Size(859, 170);
             this.pnlTop.TabIndex = 3;
+            // 
+            // txtTime
+            // 
+            this.txtTime.Location = new System.Drawing.Point(710, 101);
+            this.txtTime.Name = "txtTime";
+            this.txtTime.Size = new System.Drawing.Size(109, 21);
+            this.txtTime.TabIndex = 9;
+            this.txtTime.Text = "500";
+            // 
+            // btnTimerSend
+            // 
+            this.btnTimerSend.Location = new System.Drawing.Point(619, 99);
+            this.btnTimerSend.Name = "btnTimerSend";
+            this.btnTimerSend.Size = new System.Drawing.Size(75, 23);
+            this.btnTimerSend.TabIndex = 8;
+            this.btnTimerSend.Text = "定时发送";
+            this.btnTimerSend.UseVisualStyleBackColor = true;
+            this.btnTimerSend.Click += new System.EventHandler(this.btnTimerSend_Click);
             // 
             // btnSend
             // 
@@ -100,20 +129,55 @@
             // pnlRecv
             // 
             this.pnlRecv.Controls.Add(this.txtRecv);
+            this.pnlRecv.Controls.Add(this.panel1);
             this.pnlRecv.Dock = System.Windows.Forms.DockStyle.Fill;
             this.pnlRecv.Location = new System.Drawing.Point(0, 170);
             this.pnlRecv.Name = "pnlRecv";
             this.pnlRecv.Size = new System.Drawing.Size(859, 318);
             this.pnlRecv.TabIndex = 4;
             // 
+            // timer1
+            // 
+            this.timer1.Tick += new System.EventHandler(this.timer1_Tick);
+            // 
+            // panel1
+            // 
+            this.panel1.Controls.Add(this.button1);
+            this.panel1.Dock = System.Windows.Forms.DockStyle.Top;
+            this.panel1.Location = new System.Drawing.Point(0, 0);
+            this.panel1.Name = "panel1";
+            this.panel1.Size = new System.Drawing.Size(859, 39);
+            this.panel1.TabIndex = 1;
+            // 
+            // button1
+            // 
+            this.button1.Location = new System.Drawing.Point(10, 9);
+            this.button1.Name = "button1";
+            this.button1.Size = new System.Drawing.Size(75, 23);
+            this.button1.TabIndex = 11;
+            this.button1.Text = "清空显示";
+            this.button1.UseVisualStyleBackColor = true;
+            this.button1.Click += new System.EventHandler(this.button1_Click);
+            // 
             // txtRecv
             // 
             this.txtRecv.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.txtRecv.Location = new System.Drawing.Point(0, 0);
+            this.txtRecv.Location = new System.Drawing.Point(0, 39);
             this.txtRecv.Multiline = true;
             this.txtRecv.Name = "txtRecv";
-            this.txtRecv.Size = new System.Drawing.Size(859, 318);
-            this.txtRecv.TabIndex = 0;
+            this.txtRecv.Size = new System.Drawing.Size(859, 279);
+            this.txtRecv.TabIndex = 2;
+            this.txtRecv.WordWrap = false;
+            // 
+            // btnDisconnect
+            // 
+            this.btnDisconnect.Location = new System.Drawing.Point(320, 10);
+            this.btnDisconnect.Name = "btnDisconnect";
+            this.btnDisconnect.Size = new System.Drawing.Size(75, 23);
+            this.btnDisconnect.TabIndex = 10;
+            this.btnDisconnect.Text = "断开";
+            this.btnDisconnect.UseVisualStyleBackColor = true;
+            this.btnDisconnect.Click += new System.EventHandler(this.btnDisconnect_Click);
             // 
             // Form1
             // 
@@ -129,6 +193,7 @@
             this.pnlTop.PerformLayout();
             this.pnlRecv.ResumeLayout(false);
             this.pnlRecv.PerformLayout();
+            this.panel1.ResumeLayout(false);
             this.ResumeLayout(false);
 
         }
@@ -140,9 +205,15 @@
         private System.Windows.Forms.TextBox txtHost;
         private System.Windows.Forms.Button btnConnect;
         private System.Windows.Forms.Panel pnlRecv;
-        private System.Windows.Forms.TextBox txtRecv;
         private System.Windows.Forms.TextBox txtSend;
         private System.Windows.Forms.Button btnSend;
+        private System.Windows.Forms.Timer timer1;
+        private System.Windows.Forms.Button btnTimerSend;
+        private System.Windows.Forms.TextBox txtTime;
+        private System.Windows.Forms.Panel panel1;
+        private System.Windows.Forms.Button button1;
+        private System.Windows.Forms.TextBox txtRecv;
+        private System.Windows.Forms.Button btnDisconnect;
     }
 }
 

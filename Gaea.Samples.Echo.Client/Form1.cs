@@ -35,6 +35,7 @@ namespace Gaea.Samples.Echo.Client
         void tcpClient_OnContextDisconnected(GaeaSocketContext context)
         {
             sflogger.LogMessage("连接与服务器断开!");
+            timer1.Enabled = false;
         }
 
         void tcpClient_OnContextConnected(GaeaSocketContext context)
@@ -85,6 +86,35 @@ namespace Gaea.Samples.Echo.Client
         private void Form1_Load(object sender, EventArgs e)
         {
 
+        }
+
+        private void btnTimerSend_Click(object sender, EventArgs e)
+        {
+            timer1.Enabled = false;
+            timer1.Interval = int.Parse(txtTime.Text);
+            timer1.Enabled = true;
+        }
+
+        private void timer1_Tick(object sender, EventArgs e)
+        {
+            try
+            {
+                clientContext.BlockSendString(txtSend.Text, Encoding.Default);
+            }
+            catch (Exception ex)
+            {
+                sflogger.LogMessage(ex.Message);
+            }
+        }
+
+        private void button1_Click(object sender, EventArgs e)
+        {
+            this.txtRecv.Text = "";
+        }
+
+        private void btnDisconnect_Click(object sender, EventArgs e)
+        {
+            clientContext.RequestDisconnect();
         }
     }
 }

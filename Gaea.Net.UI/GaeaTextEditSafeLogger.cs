@@ -30,7 +30,7 @@ namespace Gaea.Net.UI
                 txtLog.Invoke(
                    (MethodInvoker)delegate()
                    {
-                       this.txtLog.Text += s + "\r\n";
+                       this.txtLog.Text += string.Format("{0:yyyy-MM-dd hh:mm:ss.fff} {1}", DateTime.Now, s) + "\r\n";
                        txtLog.Select(txtLog.Text.Length, 0);
                        txtLog.ScrollToCaret();
                    }

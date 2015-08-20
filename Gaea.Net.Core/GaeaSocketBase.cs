@@ -187,7 +187,7 @@ namespace Gaea.Net.Core
 
             foreach (GaeaSocketContext context in lst)
             {
-                context.RequestDisconnect();
+                context.RequestDisconnect("RequestDisconnectAll");
             }
         }
 

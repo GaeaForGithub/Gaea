@@ -104,21 +104,25 @@ namespace Gaea.Samples.Echo
         {
             IList<GaeaSocketContext> list = new List<GaeaSocketContext>();
             tcpSvr.GetOnlineList(list);
-            foreach (GaeaSocketContext context in list)
+            while (tcpSvr.Active)
             {
-                if (context.AddRef())
+                foreach (GaeaSocketContext context in list)
                 {
-                    try
+                    if (context.AddRef("Test"))
                     {
-                        context.PostSendString("test push!");
-                        Thread.Sleep(5000);
+                        try
+                        {
+                            context.PostSendString("test push!");
+                            Thread.Sleep(1000);
 
-                    }finally
-                    {
-                        Debug.WriteLine(String.Format("[{0}:{1}]task_context_release!",  context.RemoteHost, context.RemotePort));
-                        context.ReleaseRef();
+                        }
+                        finally
+                        {
+                           // Debug.WriteLine(String.Format("[{0}:{1}]task_context_release!", context.RemoteHost, context.RemotePort));
+                            context.ReleaseRef("Test");
+                        }
+
                     }
-
                 }
             }
 

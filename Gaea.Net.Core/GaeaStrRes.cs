@@ -16,6 +16,8 @@ namespace Gaea.Net.Core
 
         public const string STR_PostDisconnectRequest = "[{0}]:响应一个断开请求, 连接将被关闭";
 
+        public const string STR_AfterConnectedEventError = "[{0}]:响应一个AfterConnected事件时异常:{1}";
+
         public const string STR_ConnectionIsCreated = "连接已经被创建";
         public const string STR_ConnectRequestException = "[{0}]:响应异步请求连接时出现异常, 错误代码:{1}";
 

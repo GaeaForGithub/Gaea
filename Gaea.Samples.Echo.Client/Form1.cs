@@ -86,5 +86,10 @@ namespace Gaea.Samples.Echo.Client
         {
 
         }
+
+        private void btnClose_Click(object sender, EventArgs e)
+        {
+            tcpClient.RequestDisconnectAll();
+        }
     }
 }

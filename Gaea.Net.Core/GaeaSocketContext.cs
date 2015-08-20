@@ -75,7 +75,7 @@ namespace Gaea.Net.Core
                 Context.LogMessage(String.Format(GaeaStrRes.STR_SendContextException,
                     Context.SocketHandle, SocketEventArg.BytesTransferred, SocketEventArg.SocketError), LogLevel.lgvDebug);
 
-                Context.RequestDisconnect();
+                Context.RequestDisconnect("Send Error");
             }
 
             if (Pool != null)
@@ -163,7 +163,7 @@ namespace Gaea.Net.Core
                 Context.LogMessage(String.Format(GaeaStrRes.STR_ReceiveException,
                     Context.SocketHandle, SocketEventArg.BytesTransferred, SocketEventArg.SocketError), LogLevel.lgvDebug);
 
-                Context.RequestDisconnect();
+                Context.RequestDisconnect("Receive Error");
             }
 
         }
@@ -325,8 +325,12 @@ namespace Gaea.Net.Core
             this.ClearSendCache();
             RawSocket.Close();
             RawSocket = null;
-            active = false;
-            requestedDisconnect = false;
+            lock(this)
+            {
+                active = false;
+                requestedDisconnect = false;
+            }
+        
 
             if (refcount !=0)
             {
@@ -355,30 +359,65 @@ namespace Gaea.Net.Core
             SocketHandle = RawSocket.Handle;
             requestedDisconnect = false;
             sending = false;
-            AddRef();
+            active = true;
+
+            /// AddRef需要判断active和requestDisconnect, 如果active 为false则会返回false
+            AddRef("DoAfterConnected");
+            OwnerServer.Monitor.IncOnline();
             if (OwnerServer != null)
             {
-                OwnerServer.DoContextConnected(this);
-                OwnerServer.Monitor.IncOnline();
+                try
+                {
+                    OwnerServer.DoContextConnected(this);
+                }catch(Exception ex)
+                {
+                    LogMessage(string.Format(GaeaStrRes.STR_AfterConnectedEventError, SocketHandle, ex.Message), LogLevel.lgvError);
+                }
             }
-            active = true;
         }
 
+
+        public bool AddRef()
+        {
+            return AddRef("No Reason!");
+        }
 
         /// <summary>
         ///  增加引用计数, 如果成功，代表可以使用
         /// </summary>
-        public bool AddRef()
+        public bool AddRef(string strReason)
         {
             lock (this)
             {
+                if (!active) return false;
                 if (requestedDisconnect) return false;
                 refcount++;
 #if TRACE_DETAIL
-                LogMessage(String.Format("[{0}:{1}]AddRef",
-                    SocketHandle, refcount), LogLevel.lgvTrace);
+                LogMessage(String.Format("[{0}:{1}]AddRef:{2}",
+                    SocketHandle, refcount, strReason), LogLevel.lgvTrace);
 #endif
                 return true;
+            }
+        }
+
+        public void ReleaseRef(string strReason)
+        {
+            int j = 0;
+            lock (this)
+            {
+                refcount--; ;
+                j = refcount;
+            }
+
+#if TRACE_DETAIL
+            LogMessage(String.Format("[{0}:{1}]ReleaseRef, reason:{2}",
+                SocketHandle, refcount, strReason), LogLevel.lgvTrace);
+#endif
+
+            if (j == 0)
+            {
+                // 断开连接
+                CloseContext();
             }
         }
 
@@ -387,23 +426,7 @@ namespace Gaea.Net.Core
         /// </summary>
         public void ReleaseRef()
         {
-            int j = 0;
-            lock (this)
-            {                
-                refcount--;;
-                j = refcount;
-            }
-
-#if TRACE_DETAIL
-            LogMessage(String.Format("[{0}:{1}]ReleaseRef",
-                SocketHandle, refcount), LogLevel.lgvTrace);
-#endif
-
-            if (j==0)
-            {
-                // 断开连接
-                CloseContext();
-            }
+            ReleaseRef("no reason!");
         }
 
         public GaeaSocketContext()
@@ -411,12 +434,17 @@ namespace Gaea.Net.Core
                    
         }
 
+        public void RequestDisconnect()
+        {
+            RequestDisconnect("No reason!");
+        }
+
         /// <summary>
         ///  第一次请求RequestDisconnect时会执行 releaseRef()
         ///  请求断开连接，如果连接正在工作(refcounter > 0)，会等待连接停止工作时再进行断开操作
         ///  执行后，会清未完成的发送请求，会取消Socket动作, 而且也不会再处理新请求。
         /// </summary>
-        public void RequestDisconnect()
+        public void RequestDisconnect(string strReason)
         {
             bool release = false;
             lock(this)
@@ -437,8 +465,8 @@ namespace Gaea.Net.Core
             }
 
             if (release)
-            {   // 是否创建的时候添加的引用
-                ReleaseRef();
+            {   // 释放创建建立连接时的引用
+                ReleaseRef("RequestDisconnect:" + strReason);
             }
         }
 
@@ -483,7 +511,7 @@ namespace Gaea.Net.Core
         /// </summary>
         public void SendNextRequest()
         {
-            if (this.AddRef())
+            if (this.AddRef("SendNextRequest"))
             {
                 try
                 {
@@ -508,7 +536,7 @@ namespace Gaea.Net.Core
 #endif
 
                         // 请求关闭当前连接
-                        this.RequestDisconnect();
+                        this.RequestDisconnect("处理请求发送队列中的关闭请求！");
                     }
                     else
                     {
@@ -521,7 +549,7 @@ namespace Gaea.Net.Core
                 }
                 finally
                 {
-                    this.ReleaseRef();
+                    this.ReleaseRef("SendNextRequest");
                 }
             }
             else
@@ -561,7 +589,7 @@ namespace Gaea.Net.Core
 
         public void DoRecveiveBuffer(SocketAsyncEventArgs e)
         {
-            if (this.AddRef())
+            if (this.AddRef("DoRecveiveBuffer"))
             {
                 try
                 {
@@ -577,7 +605,7 @@ namespace Gaea.Net.Core
                 }
                 finally
                 {
-                    this.ReleaseRef();
+                    this.ReleaseRef("DoRecveiveBuffer");
                 }
             }else
             {

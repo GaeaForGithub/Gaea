@@ -1,0 +1,2 @@
+1. 修复RequestDisconnect和,ReleaseRef的bug。该bug可能会引起客户端断开时出现异常。
+   2015-08-20 09:12:26

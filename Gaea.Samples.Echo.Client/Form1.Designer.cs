@@ -36,12 +36,14 @@
             this.btnConnect = new System.Windows.Forms.Button();
             this.pnlRecv = new System.Windows.Forms.Panel();
             this.txtRecv = new System.Windows.Forms.TextBox();
+            this.btnClose = new System.Windows.Forms.Button();
             this.pnlTop.SuspendLayout();
             this.pnlRecv.SuspendLayout();
             this.SuspendLayout();
             // 
             // pnlTop
             // 
+            this.pnlTop.Controls.Add(this.btnClose);
             this.pnlTop.Controls.Add(this.btnSend);
             this.pnlTop.Controls.Add(this.txtSend);
             this.pnlTop.Controls.Add(this.txtPort);
@@ -115,6 +117,16 @@
             this.txtRecv.Size = new System.Drawing.Size(859, 318);
             this.txtRecv.TabIndex = 0;
             // 
+            // btnClose
+            // 
+            this.btnClose.Location = new System.Drawing.Point(314, 10);
+            this.btnClose.Name = "btnClose";
+            this.btnClose.Size = new System.Drawing.Size(75, 23);
+            this.btnClose.TabIndex = 8;
+            this.btnClose.Text = "断开";
+            this.btnClose.UseVisualStyleBackColor = true;
+            this.btnClose.Click += new System.EventHandler(this.btnClose_Click);
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 12F);
@@ -143,6 +155,7 @@
         private System.Windows.Forms.TextBox txtRecv;
         private System.Windows.Forms.TextBox txtSend;
         private System.Windows.Forms.Button btnSend;
+        private System.Windows.Forms.Button btnClose;
     }
 }
 

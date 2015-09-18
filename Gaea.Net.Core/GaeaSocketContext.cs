@@ -362,10 +362,10 @@ namespace Gaea.Net.Core
             active = true;
 
             /// AddRef需要判断active和requestDisconnect, 如果active 为false则会返回false
-            AddRef("DoAfterConnected");
-            OwnerServer.Monitor.IncOnline();
+            AddRef("DoAfterConnected");            
             if (OwnerServer != null)
             {
+                OwnerServer.Monitor.IncOnline();
                 try
                 {
                     OwnerServer.DoContextConnected(this);
@@ -756,6 +756,9 @@ namespace Gaea.Net.Core
 
         protected bool active = false;
 
+        /// <summary>
+        ///  是否成功连接
+        /// </summary>
         public bool Active { get { return active; } }
 
         /// <summary>
